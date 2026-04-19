@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1B3A2D">
+<title>Ferme Alirah</title>
+<style>
+:root {
+  --primary:#1B3A2D; --primary-light:#2A5A44; --gold:#C9A84C;
+  --red:#C0392B; --red-bg:#FDECEA; --red-t:#922B21;
+  --green:#1A7A4A; --green-bg:#E9F7EF; --green-t:#145A35;
+  --orange:#D35400; --orange-bg:#FEF0E6; --orange-t:#A04000;
+  --blue-bg:#EBF5FB; --blue-t:#1A5276;
+  --gray:#F4F4F4; --gray-t:#666; --white:#FFF; --border:#E0E0E0;
+  --radius:12px; --radius-sm:8px; --font:'Segoe UI',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--font);background:#F0F2F5;color:#222;min-height:100vh;overflow-x:hidden}
+
+/* AUTH */
+#auth{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--primary);padding:2rem}
+.auth-logo{font-size:2.5rem;font-weight:800;color:var(--gold);letter-spacing:2px;margin-bottom:2px}
+.auth-farm{color:#9fc;font-size:0.9rem;font-weight:600;margin-bottom:4px}
+.auth-sub{color:#aab;font-size:0.8rem;margin-bottom:2rem;text-align:center}
+.auth-lbl{color:#ccd;font-size:0.8rem;font-weight:600;margin-bottom:6px;display:block;width:100%;max-width:320px;text-align:left}
+.auth-sel{width:100%;max-width:320px;padding:.85rem 1rem;border-radius:var(--radius);border:1.5px solid #344;background:#243;color:white;font-size:1rem;margin-bottom:1rem;appearance:none}
+.auth-sel option{background:var(--primary)}
+.pin-wrap{display:flex;gap:10px;margin-bottom:1.5rem}
+.pin-box{width:56px;height:56px;border-radius:var(--radius-sm);border:1.5px solid #344;background:#243;color:white;font-size:1.4rem;font-weight:700;text-align:center;-webkit-text-security:disc}
+.pin-box:focus{outline:none;border-color:var(--gold)}
+.btn-auth{width:100%;max-width:320px;padding:.9rem;background:var(--gold);color:var(--primary);font-size:1rem;font-weight:700;border:none;border-radius:var(--radius);cursor:pointer;letter-spacing:1px}
+.auth-err{color:#f88;font-size:.85rem;margin-top:.5rem;min-height:20px}
+
+/* APP */
+#app{display:none;flex-direction:column;min-height:100vh}
+.topbar{background:var(--primary);color:white;padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-title{font-size:1rem;font-weight:700;color:var(--gold)}
+.topbar-sub{font-size:.72rem;color:#9fc;margin-top:1px}
+.user-badge{background:var(--gold);color:var(--primary);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;cursor:pointer}
+.page{display:none;flex:1;padding:1rem;padding-bottom:85px}
+.page.active{display:block}
+
+/* BOTTOM NAV */
+.bot-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1.5px solid var(--border);display:flex;z-index:100;overflow-x:auto}
+.nav-it{flex:1;min-width:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 4px 8px;cursor:pointer;font-size:.6rem;color:var(--gray-t);gap:2px;transition:all .15s;white-space:nowrap}
+.nav-it.active{color:var(--primary);font-weight:700}
+.nav-ic{font-size:1.3rem;line-height:1}
+
+/* CARDS */
+.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1rem;margin-bottom:.75rem}
+.card-title{font-size:.75rem;font-weight:700;color:var(--gray-t);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem}
+.kpi{background:var(--gray);border-radius:var(--radius-sm);padding:.7rem .8rem}
+.kpi-lbl{font-size:.68rem;color:var(--gray-t);margin-bottom:3px}
+.kpi-val{font-size:1.4rem;font-weight:700}
+.kpi-sub{font-size:.68rem;margin-top:1px}
+.ok{color:var(--green)} .warn{color:var(--orange)} .danger{color:var(--red)}
+.ab{border-radius:var(--radius-sm);padding:.65rem .85rem;font-size:.82rem;font-weight:600;margin-bottom:.65rem;display:flex;align-items:center;gap:8px;line-height:1.4}
+.ab-icon{font-size:1.1rem;flex-shrink:0}
+.a-ok{background:var(--green-bg);color:var(--green-t)}
+.a-warn{background:var(--orange-bg);color:var(--orange-t)}
+.a-danger{background:var(--red-bg);color:var(--red-t)}
+.a-info{background:var(--blue-bg);color:var(--blue-t)}
+.a-gold{background:#FDF3DC;color:#7D6608}
+.sec-title{font-size:.75rem;font-weight:700;color:var(--gray-t);text-transform:uppercase;letter-spacing:.05em;margin:1rem 0 .5rem}
+.inp-row{display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.6rem .85rem;margin-bottom:.5rem}
+.inp-icon{font-size:1.2rem;width:26px;text-align:center;flex-shrink:0}
+.inp-lbl{flex:1;font-size:.85rem;color:#333}
+.inp-field{width:70px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.9rem;font-weight:700;text-align:right;background:var(--gray);color:#222}
+.inp-unit{font-size:.78rem;color:var(--gray-t);width:30px}
+.inp-sel{border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.82rem;background:var(--gray);color:#222;max-width:130px}
+.chk-item{display:flex;align-items:center;gap:10px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.7rem .85rem;margin-bottom:.5rem;cursor:pointer;font-size:.85rem}
+.chk-item.done{background:var(--green-bg);border-color:#a8dfbe}
+.chk-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;transition:all .15s}
+.chk-item.done .chk-box{background:var(--green);border-color:var(--green);color:white}
+.btn-p{width:100%;padding:.9rem;background:var(--primary);color:white;font-size:.95rem;font-weight:700;border:none;border-radius:var(--radius);cursor:pointer;margin-top:.5rem;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s}
+.btn-p:active{opacity:.85;transform:scale(.98)}
+.btn-g{padding:.6rem 1rem;background:var(--gold);color:var(--primary);font-size:.85rem;font-weight:700;border:none;border-radius:var(--radius-sm);cursor:pointer}
+.btn-r{width:100%;padding:.9rem;background:var(--red);color:white;font-size:.95rem;font-weight:700;border:none;border-radius:var(--radius);cursor:pointer;margin-top:.5rem;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-sm{padding:.5rem .9rem;font-size:.82rem;font-weight:700;border:none;border-radius:var(--radius-sm);cursor:pointer}
+.res-row{display:flex;align-items:center;justify-content:space-between;padding:.7rem .85rem;background:var(--gray);border-radius:var(--radius-sm);margin-bottom:.5rem}
+.res-lbl{font-size:.82rem;color:var(--gray-t)}
+.res-val{font-size:1.1rem;font-weight:700}
+.res-cible{font-size:.75rem;color:var(--gray-t)}
+.prog-bg{height:10px;background:var(--gray);border-radius:5px;overflow:hidden;margin:.5rem 0}
+.prog-fill{height:10px;border-radius:5px;background:var(--primary);transition:width .4s}
+.tab-bar{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.tab{padding:8px 16px;border-radius:8px;font-size:.82rem;cursor:pointer;border:2px solid var(--border);background:var(--white);color:var(--gray-t);font-weight:600;transition:all .15s}
+.tab.on{background:var(--primary);color:var(--gold);border-color:var(--primary);font-weight:700;box-shadow:0 2px 8px rgba(27,58,45,.3)}
+.tab:active{opacity:.8}
+.tbl{width:100%;border-collapse:collapse;font-size:.82rem}
+.tbl th{background:var(--primary);color:var(--gold);padding:7px 10px;text-align:left;font-weight:600;font-size:.78rem}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--gray);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:nth-child(even) td{background:var(--gray)}
+.badge{font-size:.68rem;font-weight:700;padding:3px 8px;border-radius:12px}
+.badge-r{background:var(--red-bg);color:var(--red-t)}
+.badge-o{background:var(--orange-bg);color:var(--orange-t)}
+.badge-g{background:var(--green-bg);color:var(--green-t)}
+.badge-gold{background:#FDF3DC;color:#7D6608}
+.mal-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:.75rem}
+.mal-head{padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.mal-body{padding:0 1rem .85rem;display:none}
+.mal-body.open{display:block}
+.mal-sec{font-size:.75rem;font-weight:700;color:var(--gray-t);text-transform:uppercase;margin:.6rem 0 .3rem}
+.mal-item{font-size:.82rem;padding:4px 0;color:#333;display:flex;gap:6px}
+.mal-item:before{content:"•";color:var(--primary);flex-shrink:0}
+.act-item{font-size:.82rem;padding:4px 0;color:#333;display:flex;gap:6px;font-weight:500}
+.act-item:before{content:"▶";color:var(--gold);flex-shrink:0;font-size:.7rem;margin-top:2px}
+.proto-item{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.7rem .85rem;margin-bottom:.5rem;display:flex;align-items:flex-start;gap:10px}
+.proto-jour{background:var(--primary);color:var(--gold);border-radius:6px;padding:4px 8px;font-size:.78rem;font-weight:700;min-width:40px;text-align:center;flex-shrink:0}
+.proto-today{border-color:var(--gold);border-width:2px}
+.proto-done{background:var(--green-bg);border-color:#a8dfbe}
+.proto-alert{border-color:var(--orange);border-width:2px;background:var(--orange-bg)}
+.bande-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:.75rem}
+.bande-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.bande-title{font-size:.95rem;font-weight:700;color:var(--primary)}
+.form-group{margin-bottom:.75rem}
+.form-lbl{font-size:.82rem;font-weight:600;color:#333;margin-bottom:4px;display:block}
+.form-inp{width:100%;padding:.65rem .85rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.9rem;background:var(--white);color:#222}
+.form-inp:focus{outline:none;border-color:var(--primary)}
+.form-sel{width:100%;padding:.65rem .85rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.9rem;background:var(--white);color:#222;appearance:none}
+.divider{height:1px;background:var(--border);margin:.75rem 0}
+.toast{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);background:var(--primary);color:white;padding:.75rem 1.25rem;border-radius:var(--radius);font-size:.85rem;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.admin-only{display:none}
+.vente-ligne{background:var(--gray);border-radius:var(--radius-sm);padding:.75rem;margin-bottom:.5rem}
+.stock-bar{height:12px;background:var(--gray);border-radius:6px;overflow:hidden;margin:.5rem 0}
+.stock-fill{height:12px;border-radius:6px;transition:width .4s}
+
+.loading-overlay{
+  display:none;position:fixed;inset:0;background:rgba(27,58,45,0.85);
+  z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:16px;
+}
+.loading-overlay.show{display:flex}
+.loading-spinner{
+  width:48px;height:48px;border:4px solid rgba(201,168,76,0.3);
+  border-top-color:#C9A84C;border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+.loading-msg{color:#C9A84C;font-size:.95rem;font-weight:600;font-family:'Segoe UI',system-ui,sans-serif}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn-loading{opacity:.6;pointer-events:none}
+
+.dep-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:.5rem}
+.dep-table th{background:var(--primary);color:var(--gold);padding:8px 6px;text-align:left;font-weight:600;font-size:.75rem;white-space:nowrap}
+.dep-table td{padding:6px;border-bottom:1px solid var(--border);vertical-align:middle}
+.dep-table tr:last-child td{border-bottom:none}
+.dep-table input{width:100%;border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:.82rem;background:var(--gray)}
+.dep-table input:focus{outline:none;border-color:var(--primary)}
+.dep-montant{font-weight:700;color:var(--primary);text-align:right;white-space:nowrap}
+.dep-total-row{background:var(--primary);color:var(--gold);font-weight:700}
+.dep-total-row td{padding:8px 6px}
+.btn-add-dep{background:var(--green);color:white;border:none;border-radius:6px;padding:4px 10px;font-size:.78rem;cursor:pointer;font-weight:600}
+.btn-del-dep{background:var(--red);color:white;border:none;border-radius:4px;padding:2px 6px;font-size:.75rem;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="global-loading">
+  <div class="loading-spinner"></div>
+  <div class="loading-msg" id="loading-msg">Chargement en cours...</div>
+</div>
+
+<!-- AUTH -->
+<div id="auth">
+  <div class="auth-logo">F</div>
+  <div class="auth-farm">Ferme Alirah</div>
+  <div class="auth-sub">Application de gestion avicole - Ouagadougou</div>
+  <label class="auth-lbl">Qui es-tu ?</label>
+  <select class="auth-sel" id="auth-user">
+    <option value="">-- Choisir --</option>
+    <option value="gestionnaire">Gestionnaire</option>
+    <option value="collab1">Collaborateur 1</option>
+    <option value="collab2">Collaborateur 2</option>
+    <option value="partenaire">Partenaire</option>
+  </select>
+  <label class="auth-lbl">Code secret (4 chiffres)</label>
+  <div class="pin-wrap">
+    <input class="pin-box" type="tel" maxlength="1" id="p1" oninput="pinNext(this,'p2')">
+    <input class="pin-box" type="tel" maxlength="1" id="p2" oninput="pinNext(this,'p3')">
+    <input class="pin-box" type="tel" maxlength="1" id="p3" oninput="pinNext(this,'p4')">
+    <input class="pin-box" type="tel" maxlength="1" id="p4" oninput="pinNext(this,null)">
+  </div>
+  <button class="btn-auth" id="btn-auth" onclick="doLogin()">
+    <span id="btn-auth-txt">Entrer dans l'application</span>
+    <div class="auth-spinner" id="auth-spin"></div>
+  </button>
+  <div class="auth-err" id="auth-err"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="page-title">Tableau de bord</div>
+      <div class="topbar-sub">Ferme Loumbila · J<span id="jour-act">1</span> · <span id="bande-nom-top">—</span></div>
+    </div>
+    <div class="user-badge" id="user-badge" onclick="doLogout()">?</div>
+  </div>
+
+  <!-- PAGE ACCUEIL -->
+  <div class="page active" id="page-accueil">
+    <!-- ONGLETS ACCUEIL -->
+    <div class="tab-bar" style="margin-bottom:1rem">
+      <div class="tab on" onclick="swAccueil('bande',this)">📋 Bande en cours</div>
+      <div class="tab" id="tab-acc-new" onclick="swAccueil('new',this)">➕ Nouvelle bande</div>
+    </div>
+
+    <!-- BANDE EN COURS -->
+    <div id="acc-bande">
+      <!-- Sélecteur bande active -->
+      <div class="card" style="padding:.75rem;margin-bottom:.75rem">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:.82rem;font-weight:600;color:var(--primary);white-space:nowrap">Bande active :</span>
+          <select class="form-sel" id="bande-sel" onchange="changerBande(this.value)" style="flex:1;padding:.5rem;font-size:.85rem;font-weight:600"></select>
+          <button onclick="cloturerBande()" style="background:var(--red);color:white;border:none;border-radius:6px;padding:.4rem .75rem;font-size:.75rem;cursor:pointer;white-space:nowrap;display:none" id="btn-cloturer">Clôturer</button>
+        </div>
+      </div>
+      <div id="alertes-zone"></div>
+      <div id="proto-alertes-zone"></div>
+      <div class="card">
+        <div class="card-title">📊 Paramètres du moment</div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-lbl">🌡️ Température</div><div class="kpi-val" id="kpi-temp">—</div><div class="kpi-sub" id="kpi-temp-s">Non saisi</div></div>
+          <div class="kpi"><div class="kpi-lbl">💧 Humidité</div><div class="kpi-val" id="kpi-hr">—</div><div class="kpi-sub" id="kpi-hr-s">Non saisi</div></div>
+          <div class="kpi"><div class="kpi-lbl">💀 Morts aujourd'hui</div><div class="kpi-val" id="kpi-morts">—</div><div class="kpi-sub" id="kpi-morts-s">—</div></div>
+          <div class="kpi"><div class="kpi-lbl">🐥 Vivants</div><div class="kpi-val" id="kpi-vivants">—</div><div class="kpi-sub" id="kpi-vivants-s">sujets</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📅 Bande en cours</div>
+        <div id="bande-info-accueil"><div style="color:var(--gray-t);font-size:.85rem;text-align:center;padding:.5rem">Aucune bande active</div></div>
+      </div>
+      <div class="card" id="card-cout-live" style="display:none">
+        <div class="card-title">💰 Coût de revient — temps réel</div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-lbl">🐔 Vivants</div><div class="kpi-val ok" id="live-vivants">—</div><div class="kpi-sub" id="live-vivants-s">sujets</div></div>
+          <div class="kpi"><div class="kpi-lbl">💀 Morts cumulés</div><div class="kpi-val danger" id="live-morts-cum">—</div><div class="kpi-sub" id="live-mort-pct">—%</div></div>
+          <div class="kpi"><div class="kpi-lbl">🌾 Aliment cumulé</div><div class="kpi-val" id="live-alim">—</div><div class="kpi-sub">kg</div></div>
+          <div class="kpi"><div class="kpi-lbl">📦 Coût / sujet</div><div class="kpi-val" id="live-cr-sujet">—</div><div class="kpi-sub">FCFA</div></div>
+          <div class="kpi"><div class="kpi-lbl">🥩 Coût / kg carc.</div><div class="kpi-val" id="live-cr-kg">—</div><div class="kpi-sub" id="live-cr-kg-s">—</div></div>
+          <div class="kpi"><div class="kpi-lbl">💰 Marge estimée</div><div class="kpi-val" id="live-marge">—</div><div class="kpi-sub" id="live-marge-s">FCFA</div></div>
+        </div>
+        <div id="live-alerte"></div>
+      </div>
+
+      <!-- DÉPENSES BANDE — Gestionnaire uniquement -->
+      <div class="card admin-only" id="card-depenses-bande" style="display:none">
+        <div class="card-title">💸 Dépenses — <span id="dep-bande-label" style="color:var(--gold)">sélectionner une bande</span></div>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+          <table class="dep-table">
+            <thead>
+              <tr>
+                <th>Libellé</th>
+                <th>Unité</th>
+                <th>P.Unit (F)</th>
+                <th>Qté</th>
+                <th>Montant</th>
+                <th>Sup</th>
+              </tr>
+            </thead>
+            <tbody id="dep-tbody"></tbody>
+            <tfoot>
+              <tr class="dep-total-row">
+                <td colspan="4" style="padding:8px 6px">TOTAL DÉPENSES</td>
+                <td style="padding:8px 6px;font-weight:700;color:var(--gold)" id="dep-total">0 F</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <button onclick="addDepLine()" style="margin-top:.75rem;background:var(--green);color:white;border:none;border-radius:6px;padding:8px 16px;font-size:.85rem;cursor:pointer;font-weight:600">+ Ajouter une ligne</button>
+        <button class="btn-p" onclick="saveDepenses()" style="margin-top:.5rem">💾 Enregistrer les dépenses</button>
+      </div>
+
+      <button class="btn-p" onclick="goPage('saisie')">✏️ Faire la saisie du matin</button>
+    </div>
+
+    <!-- NOUVELLE BANDE — Gestionnaire uniquement -->
+    <div id="acc-new" style="display:none">
+      <div class="card">
+        <div class="card-title">➕ Créer une nouvelle bande</div>
+        <div class="ab a-warn"><span class="ab-icon">⚠️</span>La création d'une bande clôture la bande en cours</div>
+        <div class="form-group"><label class="form-lbl">Nom de la bande</label><input class="form-inp" type="text" id="new-bande-nom" placeholder="Ex: Bande Juin 2026"></div>
+        <div class="form-group"><label class="form-lbl">Date de mise en place</label><input class="form-inp" type="date" id="new-bande-date"></div>
+        <div class="form-group"><label class="form-lbl">Effectif initial</label><input class="form-inp" type="number" id="new-bande-eff" value="1100"></div>
+        <div class="form-group"><label class="form-lbl">Souche</label>
+          <select class="form-sel" id="new-bande-souche" style="width:100%">
+            <option value="cobb500">Cobb 500</option>
+            <option value="ross308">Ross 308</option>
+            <option value="mixte">Mixte Cobb 500 / Ross 308</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-lbl">% Lot A (abattage J35)</label><input class="form-inp" type="number" id="new-bande-lota" value="50"></div>
+        <div class="form-group"><label class="form-lbl">Prix poussin (FCFA)</label><input class="form-inp" type="number" id="new-bande-prix-p" value="750"></div>
+        <button class="btn-p" onclick="creerBande()">🐥 Créer la bande</button>
+      </div>
+    </div>
+  </div>
+
+    <!-- PAGE SAISIE -->
+  <div class="page" id="page-saisie">
+    <div class="tab-bar">
+      <div class="tab on" onclick="swTab('matin',this)">🌅 Matin</div>
+      <div class="tab" onclick="swTab('soir',this)">🌙 Soir</div>
+      <div class="tab" onclick="swTab('pesee',this)">⚖️ Pesée</div>
+      <div class="tab" onclick="swTab('litiere',this)">🌾 Litière</div>
+      <div class="tab" onclick="swTab('sante',this)">💉 Santé</div>
+    </div>
+    <!-- MATIN -->
+    <div id="saisie-matin">
+      <div class="ab a-info"><span class="ab-icon">ℹ️</span>Remplir avant 7h30</div>
+      <div class="sec-title">🌡️ Ambiance</div>
+      <div class="inp-row"><span class="inp-icon">🌡️</span><span class="inp-lbl">Température bâtiment</span><input class="inp-field" type="number" id="in-temp" placeholder="—" oninput="evalAmb()"><span class="inp-unit">°C</span></div>
+      <div class="inp-row"><span class="inp-icon">💧</span><span class="inp-lbl">Humidité (hygromètre)</span><input class="inp-field" type="number" id="in-hr" placeholder="—" oninput="evalAmb()"><span class="inp-unit">%</span></div>
+      <div id="amb-alert"></div>
+      <div class="sec-title">💀 Mortalité</div>
+      <div class="inp-row"><span class="inp-icon">💀</span><span class="inp-lbl">Morts trouvés ce matin</span><input class="inp-field" type="number" id="in-morts" value="0"><span class="inp-unit">suj.</span></div>
+      <div class="sec-title">🌾 Alimentation</div>
+      <div class="inp-row"><span class="inp-icon">🌾</span><span class="inp-lbl">Aliment distribué</span><input class="inp-field" type="number" id="in-alim" placeholder="—"><span class="inp-unit">kg</span></div>
+      <div class="inp-row"><span class="inp-icon">🚰</span><span class="inp-lbl">Eau rechloratée ?</span><select class="inp-sel" id="in-eau"><option value="oui">✅ Oui</option><option value="non">❌ Non</option></select><span class="inp-unit"></span></div>
+      <div class="sec-title">👁️ Observations</div>
+      <div class="chk-item" onclick="togChk(this)"><div class="chk-box"></div><span>🐔 Poulets actifs et bien répartis</span></div>
+      <div class="chk-item" onclick="togChk(this)"><div class="chk-box"></div><span>🚰 Eau claire dans tous les abreuvoirs</span></div>
+      <div class="chk-item" onclick="togChk(this)"><div class="chk-box"></div><span>💨 Brasseurs en marche</span></div>
+      <div class="chk-item" onclick="togChk(this)"><div class="chk-box"></div><span>🪟 Ridelles bien réglées</span></div>
+      <button class="btn-p" onclick="saveMatin()">💾 Enregistrer la saisie du matin</button>
+    </div>
+    <!-- SOIR -->
+    <div id="saisie-soir" style="display:none">
+      <div class="ab a-info"><span class="ab-icon">ℹ️</span>Remplir avant 20h</div>
+      <div class="inp-row"><span class="inp-icon">🌡️</span><span class="inp-lbl">Température soir</span><input class="inp-field" type="number" id="in-temp-s" placeholder="—"><span class="inp-unit">°C</span></div>
+      <div class="inp-row"><span class="inp-icon">💧</span><span class="inp-lbl">Humidité soir</span><input class="inp-field" type="number" id="in-hr-s" placeholder="—"><span class="inp-unit">%</span></div>
+      <div class="chk-item" onclick="togChk(this)"><div class="chk-box"></div><span>🚰 Abreuvoirs nettoyés et rechloratés</span></div>
+      <div class="chk-item" onclick="togChk(this)"><div class="chk-box"></div><span>💡 Éclairage allumé</span></div>
+      <div class="chk-item" onclick="togChk(this)"><div class="chk-box"></div><span>🪟 Ridelles réglées pour la nuit</span></div>
+      <div class="chk-item" onclick="togChk(this)"><div class="chk-box"></div><span>💀 Cadavres évacués et mis en sac fermé</span></div>
+      <button class="btn-p" onclick="saveSoir()">💾 Enregistrer la saisie du soir</button>
+    </div>
+    <!-- PESÉE -->
+    <div id="saisie-pesee" style="display:none">
+      <div class="ab a-info"><span class="ab-icon">⚖️</span>Peser 50 sujets chaque dimanche</div>
+      <div class="inp-row"><span class="inp-icon">🔢</span><span class="inp-lbl">Nombre de sujets pesés</span><input class="inp-field" type="number" id="in-nb-p" value="50"><span class="inp-unit">suj.</span></div>
+      <div class="inp-row"><span class="inp-icon">⚖️</span><span class="inp-lbl">Poids total pesée</span><input class="inp-field" type="number" id="in-pt" placeholder="—" oninput="calcPesee()"><span class="inp-unit">g</span></div>
+      <div class="inp-row"><span class="inp-icon">📅</span><span class="inp-lbl">Poids moyen semaine dernière</span><input class="inp-field" type="number" id="in-pp" placeholder="—" oninput="calcPesee()"><span class="inp-unit">g</span></div>
+      <div class="inp-row"><span class="inp-icon">🌾</span><span class="inp-lbl">Aliment consommé (7 jours)</span><input class="inp-field" type="number" id="in-as" placeholder="—" oninput="calcPesee()"><span class="inp-unit">kg</span></div>
+      <div class="sec-title">✅ Résultats</div>
+      <div class="res-row"><div><div class="res-lbl">Poids moyen</div></div><div class="res-val" id="res-pm">— g</div></div>
+      <div class="res-row"><div><div class="res-lbl">GMQ</div><div class="res-cible">Cible &gt;50 g/j</div></div><div class="res-val" id="res-gmq">—</div></div>
+      <div class="res-row"><div><div class="res-lbl">Indice de consommation</div><div class="res-cible">Cible &lt;2.0</div></div><div class="res-val" id="res-ic">—</div></div>
+      <div id="pesee-alert"></div>
+      <button class="btn-p" onclick="savePesee()">💾 Enregistrer la pesée</button>
+    </div>
+    <!-- LITIÈRE -->
+    <div id="saisie-litiere" style="display:none">
+      <div class="ab a-info"><span class="ab-icon">🌾</span>Enregistrer chaque changement de litière</div>
+      <div class="sec-title">🌾 Changement de litière</div>
+      <div class="inp-row"><span class="inp-icon">📅</span><span class="inp-lbl">Date du changement</span><input class="inp-field" type="date" id="in-lit-date" style="width:140px"><span class="inp-unit"></span></div>
+      <div class="inp-row"><span class="inp-icon">🌾</span><span class="inp-lbl">Nature de la litière</span>
+        <select class="inp-sel" id="in-lit-type">
+          <option value="coque_arachide">Coque d'arachide</option>
+          <option value="coque_riz">Coque de riz</option>
+          <option value="copeaux_bois">Copeaux de bois</option>
+        </select>
+      </div>
+      <div class="inp-row"><span class="inp-icon">🔢</span><span class="inp-lbl">Quantité utilisée</span><input class="inp-field" type="number" id="in-lit-qte" placeholder="—"><span class="inp-unit">kg</span></div>
+      <div class="inp-row"><span class="inp-icon">📝</span><span class="inp-lbl">Observations</span><input class="inp-field" type="text" id="in-lit-obs" placeholder="—" style="width:140px"><span class="inp-unit"></span></div>
+      <button class="btn-p" onclick="saveLitiere()">💾 Enregistrer le changement</button>
+      <div class="sec-title">📋 Historique litière</div>
+      <div id="lit-hist"></div>
+    </div>
+    <!-- SANTÉ -->
+    <div id="saisie-sante" style="display:none">
+      <div class="ab a-info"><span class="ab-icon">💉</span>Enregistrer une intervention santé réalisée</div>
+      <div class="sec-title">💉 Intervention réalisée</div>
+      <div class="inp-row"><span class="inp-icon">📅</span><span class="inp-lbl">Date</span><input class="inp-field" type="date" id="in-san-date" style="width:140px"><span class="inp-unit"></span></div>
+      <div class="inp-row"><span class="inp-icon">💊</span><span class="inp-lbl">Type</span>
+        <select class="inp-sel" id="in-san-type">
+          <option value="vaccin">💉 Vaccin</option>
+          <option value="vitamine">🍊 Vitamines</option>
+          <option value="antibiotique">💊 Antibiotique</option>
+          <option value="anticoccidien">🔬 Anticoccidien</option>
+          <option value="electrolyte">⚡ Électrolytes</option>
+          <option value="autre">📋 Autre</option>
+        </select>
+      </div>
+      <div class="inp-row"><span class="inp-icon">📋</span><span class="inp-lbl">Produit utilisé</span><input class="inp-field" type="text" id="in-san-prod" placeholder="Nom du produit" style="width:140px"><span class="inp-unit"></span></div>
+      <div class="inp-row"><span class="inp-icon">📏</span><span class="inp-lbl">Dose / Quantité</span><input class="inp-field" type="text" id="in-san-dose" placeholder="—" style="width:140px"><span class="inp-unit"></span></div>
+      <div class="inp-row"><span class="inp-icon">📝</span><span class="inp-lbl">Observations</span><input class="inp-field" type="text" id="in-san-obs" placeholder="—" style="width:140px"><span class="inp-unit"></span></div>
+      <button class="btn-p" onclick="saveSante()">💾 Enregistrer l'intervention</button>
+    </div>
+  </div>
+
+  <!-- PAGE PROTOCOLE -->
+  <div class="page" id="page-proto">
+    <div class="tab-bar">
+      <div class="tab on" onclick="swTabProto('calendrier',this)">📅 Calendrier</div>
+      <div class="tab admin-only" onclick="swTabProto('planifier',this)">➕ Planifier</div>
+      <div class="tab" onclick="swTabProto('vide',this)">🧹 Vide sanitaire</div>
+    </div>
+    <div id="proto-calendrier">
+      <div id="proto-alertes-banner"></div>
+      <div class="sec-title">Interventions planifiées</div>
+      <div id="proto-list"></div>
+    </div>
+    <div id="proto-planifier" style="display:none">
+      <div class="ab a-info"><span class="ab-icon">ℹ️</span>Planifier une intervention — les alertes seront envoyées 48h et 24h avant</div>
+      <div class="form-group"><label class="form-lbl">Type d'intervention</label>
+        <select class="form-sel" id="new-proto-type">
+          <option value="vaccin">💉 Vaccin</option>
+          <option value="vitamine">🍊 Vitamines</option>
+          <option value="antibiotique">💊 Antibiotique</option>
+          <option value="anticoccidien">🔬 Anticoccidien</option>
+          <option value="electrolyte">⚡ Électrolytes</option>
+          <option value="autre">📋 Autre</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-lbl">Produit</label><input class="form-inp" type="text" id="new-proto-prod" placeholder="Nom du produit"></div>
+      <div class="form-group"><label class="form-lbl">Date prévue</label><input class="form-inp" type="date" id="new-proto-date"></div>
+      <div class="form-group"><label class="form-lbl">Dose / Mode d'administration</label><input class="form-inp" type="text" id="new-proto-dose" placeholder="Ex : 1 goutte/poussin, eau de boisson..."></div>
+      <div class="form-group"><label class="form-lbl">Notes</label><input class="form-inp" type="text" id="new-proto-notes" placeholder="Notes optionnelles"></div>
+      <button class="btn-p" onclick="saveProto()">💾 Planifier cette intervention</button>
+    </div>
+
+    <!-- VIDE SANITAIRE -->
+    <div id="proto-vide" style="display:none">
+      <div class="ab a-info"><span class="ab-icon">🧹</span>Protocole de nettoyage-désinfection entre bandes — Vide sanitaire minimum 21 jours</div>
+      <div class="sec-title">Chronologie du vide sanitaire</div>
+      <div id="vide-list"></div>
+      <div class="card">
+        <div class="card-title">📊 Progression</div>
+        <div id="vide-progress"></div>
+        <button class="btn-p" style="margin-top:.5rem" onclick="resetVide()">🔄 Réinitialiser le vide sanitaire</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE STOCK -->
+  <div class="page" id="page-stock">
+    <div class="tab-bar">
+      <div class="tab on" onclick="swTabStock('stock_initial',this)">📦 Stock initial</div>
+      <div class="tab" onclick="swTabStock('consommation',this)">➖ Consommation</div>
+      <div class="tab" onclick="swTabStock('disponible',this)">📊 Disponible</div>
+      <div class="tab" onclick="swTabStock('poussins',this)">🐥 Poussins</div>
+    </div>
+    <!-- STOCK INITIAL -->
+    <div id="stock-stock_initial">
+      <div class="ab a-info"><span class="ab-icon">📦</span>Entrer le nombre total de sacs au démarrage ou à chaque réapprovisionnement</div>
+      <div class="card">
+        <div class="card-title">📦 Entrer un stock de sacs</div>
+        <div class="inp-row"><span class="inp-icon">🌾</span><span class="inp-lbl">Nombre de sacs reçus</span><input class="inp-field" type="number" id="stock-init-sacs" placeholder="0" min="1"><span class="inp-unit">sacs</span></div>
+        <div class="inp-row"><span class="inp-icon">📅</span><span class="inp-lbl">Date de réception</span><input class="inp-field" type="date" id="stock-init-date" style="width:140px"><span class="inp-unit"></span></div>
+        <div class="inp-row"><span class="inp-icon">📝</span><span class="inp-lbl">Note (optionnel)</span><input class="inp-field" type="text" id="stock-init-note" placeholder="—" style="width:140px"><span class="inp-unit"></span></div>
+        <button class="btn-p" onclick="saveStockInit()">💾 Enregistrer le stock reçu</button>
+      </div>
+      <div class="sec-title">📋 Historique des réceptions</div>
+      <div id="stock-recep-hist"></div>
+    </div>
+
+    <!-- CONSOMMATION -->
+    <div id="stock-consommation" style="display:none">
+      <div class="ab a-info"><span class="ab-icon">➖</span>Saisir chaque fois qu'un sac est ouvert ou consommé</div>
+      <div class="card">
+        <div class="card-title">➖ Saisir une consommation</div>
+        <div class="inp-row"><span class="inp-icon">🔢</span><span class="inp-lbl">Nombre de sacs consommés</span><input class="inp-field" type="number" id="conso-sacs" value="1" min="1"><span class="inp-unit">sacs</span></div>
+        <div class="inp-row"><span class="inp-icon">📅</span><span class="inp-lbl">Date</span><input class="inp-field" type="date" id="conso-date" style="width:140px"><span class="inp-unit"></span></div>
+        <div style="color:var(--gray-t);font-size:.78rem;padding:.3rem .85rem">1 sac = 50 kg</div>
+        <button class="btn-p" onclick="saveConso()">💾 Enregistrer la consommation</button>
+      </div>
+      <div class="sec-title">📋 Historique consommations</div>
+      <div id="conso-hist"></div>
+    </div>
+
+    <!-- STOCK DISPONIBLE -->
+    <div id="stock-disponible" style="display:none">
+      <div class="card">
+        <div class="card-title">📊 Stock disponible aujourd'hui</div>
+        <div id="stock-dispo-display"></div>
+      </div>
+      <div class="sec-title">📋 Mouvement des stocks</div>
+      <div id="stock-mvt-hist"></div>
+    </div>
+    <!-- STOCK POUSSINS -->
+    <div id="stock-poussins" style="display:none">
+      <div class="card">
+        <div class="card-title">🐥 Effectif vivant au jour le jour</div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-lbl">🐥 Effectif initial</div><div class="kpi-val" id="eff-init">—</div><div class="kpi-sub">sujets</div></div>
+          <div class="kpi"><div class="kpi-lbl">💀 Morts cumulés</div><div class="kpi-val danger" id="eff-morts">—</div><div class="kpi-sub">sujets</div></div>
+          <div class="kpi"><div class="kpi-lbl">🐔 Vivants aujourd'hui</div><div class="kpi-val ok" id="eff-vivants">—</div><div class="kpi-sub">sujets</div></div>
+          <div class="kpi"><div class="kpi-lbl">📉 Taux mortalité</div><div class="kpi-val" id="eff-pct">—</div><div class="kpi-sub">%</div></div>
+        </div>
+        <div class="prog-bg"><div class="prog-fill" id="eff-bar" style="width:100%;background:var(--green)"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 Évolution journalière</div>
+        <div id="poussin-hist"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE ABATTAGE -->
+  <div class="page" id="page-abattage">
+    <div class="tab-bar">
+      <div class="tab on" onclick="swTabAbt('sessions',this)">🔪 Sessions</div>
+      <div class="tab" onclick="swTabAbt('nouvelle',this)">➕ Nouvelle vente</div>
+      <div class="tab" onclick="swTabAbt('historique',this)">📋 Historique</div>
+    </div>
+
+    <!-- SESSIONS ABATTAGE -->
+    <div id="abt-sessions">
+      <div class="ab a-info"><span class="ab-icon">ℹ️</span>Chaque abattage est une session. Tu peux en avoir plusieurs par bande.</div>
+      <div id="sessions-list"></div>
+      <button class="btn-p" onclick="nouvelleSession()">➕ Nouvelle session d'abattage</button>
+    </div>
+
+    <!-- NOUVELLE VENTE -->
+    <div id="abt-nouvelle" style="display:none">
+      <div class="card">
+        <div class="card-title">👤 Informations client</div>
+        <div class="form-group"><label class="form-lbl">Session d'abattage</label>
+          <select class="form-sel" id="abt-session-sel"></select>
+        </div>
+        <div class="form-group"><label class="form-lbl">Nom du client</label><input class="form-inp" type="text" id="abt-client" placeholder="Nom du client"></div>
+        <div class="form-group"><label class="form-lbl">Date de la vente</label><input class="form-inp" type="date" id="abt-date"></div>
+        <div class="form-group"><label class="form-lbl">Type d'article</label>
+          <select class="form-sel" id="abt-type" onchange="updateVenteFields()">
+            <option value="carcasse">🔪 Poulet abattu (carcasse) — prix/kg</option>
+            <option value="vivant">🐔 Poulet vivant — prix/kg vif</option>
+            <option value="tetes_pattes">🦴 Têtes + pattes — lot/poulet</option>
+            <option value="abats">🫀 Gésiers & foies — prix/kg</option>
+            <option value="fiente">💩 Fiente — prix/sac</option>
+          </select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📦 Détail de la vente</div>
+        <!-- Champs dynamiques selon type -->
+        <div id="champ-nb" class="inp-row"><span class="inp-icon">🔢</span><span class="inp-lbl" id="lbl-nb">Nombre de poulets</span><input class="inp-field" type="number" id="abt-nb" placeholder="0" oninput="calcVente()"><span class="inp-unit" id="unit-nb">suj.</span></div>
+        <div id="champ-poids" class="inp-row"><span class="inp-icon">⚖️</span><span class="inp-lbl" id="lbl-poids">Poids total</span><input class="inp-field" type="number" id="abt-poids" placeholder="0.0" oninput="calcVente()"><span class="inp-unit">kg</span></div>
+        <div class="inp-row"><span class="inp-icon">💰</span><span class="inp-lbl" id="lbl-prix">Prix unitaire</span><input class="inp-field" type="number" id="abt-prix" placeholder="2400" oninput="calcVente()"><span class="inp-unit" id="unit-prix">F/kg</span></div>
+        <div class="inp-row"><span class="inp-icon">🏪</span><span class="inp-lbl">Destination</span>
+          <select class="inp-sel" id="abt-dest">
+            <option value="propre">🏪 Propre boucherie</option>
+            <option value="marche">🛒 Marché</option>
+            <option value="client_direct">👤 Client direct</option>
+          </select>
+        </div>
+        <div class="divider"></div>
+        <div class="res-row" style="background:#FDF3DC">
+          <div><div class="res-lbl">💰 Total à encaisser</div></div>
+          <div class="res-val" style="color:var(--primary)" id="abt-total">— FCFA</div>
+        </div>
+        <button class="btn-p" onclick="saveVente()">💾 Enregistrer la vente</button>
+      </div>
+    </div>
+
+    <!-- HISTORIQUE VENTES -->
+    <div id="abt-historique" style="display:none">
+      <div class="card">
+        <div class="card-title">📊 Récapitulatif global</div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-lbl">Total encaissé</div><div class="kpi-val ok" id="vte-total">—</div><div class="kpi-sub">FCFA</div></div>
+          <div class="kpi"><div class="kpi-lbl">Nb de sessions</div><div class="kpi-val" id="vte-sessions">—</div><div class="kpi-sub">abattages</div></div>
+          <div class="kpi"><div class="kpi-lbl">Carcasses vendues</div><div class="kpi-val" id="vte-carc">—</div><div class="kpi-sub">sujets</div></div>
+          <div class="kpi"><div class="kpi-lbl">Vivants vendus</div><div class="kpi-val" id="vte-viv">—</div><div class="kpi-sub">sujets</div></div>
+        </div>
+      </div>
+      <div class="sec-title">📋 Détail des ventes</div>
+      <div id="vente-list"></div>
+    </div>
+  </div>
+
+  <!-- PAGE COMPTABILITÉ -->
+  <div class="page" id="page-compta" data-admin="true">
+    <div class="tab-bar">
+      <div class="tab on" onclick="swTabCompta('saisir',this)">➕ Saisir</div>
+      <div class="tab" onclick="swTabCompta('bilan',this)">📊 Bilan</div>
+      <div class="tab" onclick="swTabCompta('detail',this)">📋 Détail</div>
+    </div>
+    <!-- SAISIR -->
+    <div id="compta-saisir">
+      <div class="card">
+        <div class="card-title">➕ Nouvelle opération</div>
+        <div class="form-group"><label class="form-lbl">Type</label>
+          <select class="form-sel" id="op-type" onchange="updateCategories()">
+            <option value="depense">💸 Dépense</option>
+            <option value="recette">💰 Recette</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-lbl">Catégorie</label>
+          <select class="form-sel" id="op-cat"></select>
+        </div>
+        <div class="form-group"><label class="form-lbl">Date</label><input class="form-inp" type="date" id="op-date"></div>
+        <div class="form-group"><label class="form-lbl">Montant (FCFA)</label><input class="form-inp" type="number" id="op-montant" placeholder="0"></div>
+        <div class="form-group"><label class="form-lbl">N° Facture / Référence pièce</label><input class="form-inp" type="text" id="op-ref" placeholder="Ex: FAC-2026-001"></div>
+        <div class="form-group"><label class="form-lbl">Description</label><input class="form-inp" type="text" id="op-desc" placeholder="Détails de l'opération"></div>
+        <div class="chk-item" onclick="togChk(this)" id="chk-transport" style="margin-bottom:.5rem">
+          <div class="chk-box"></div>
+          <span>🚛 Transport inclus dans cette charge</span>
+        </div>
+        <div id="transport-montant-row" style="display:none">
+          <div class="inp-row"><span class="inp-icon">🚛</span><span class="inp-lbl">Montant transport</span><input class="inp-field" type="number" id="op-transport" placeholder="0"><span class="inp-unit">FCFA</span></div>
+        </div>
+        <button class="btn-p" onclick="saveOp()">💾 Enregistrer l'opération</button>
+      </div>
+    </div>
+    <!-- BILAN -->
+    <div id="compta-bilan" style="display:none">
+      <div class="card">
+        <div class="card-title">📊 Bilan de la bande</div>
+        <div class="res-row" style="background:var(--green-bg)"><div><div class="res-lbl" style="color:var(--green-t)">Total recettes</div></div><div class="res-val ok" id="bilan-recettes">—</div></div>
+        <div class="res-row" style="background:var(--red-bg)"><div><div class="res-lbl" style="color:var(--red-t)">Total dépenses</div></div><div class="res-val danger" id="bilan-depenses">—</div></div>
+        <div class="res-row" style="background:#FDF3DC"><div><div class="res-lbl">Résultat net</div></div><div class="res-val" id="bilan-net" style="color:var(--primary)">—</div></div>
+        <div class="divider"></div>
+        <div id="bilan-cats"></div>
+      </div>
+    </div>
+    <!-- DÉTAIL -->
+    <div id="compta-detail" style="display:none">
+      <div class="sec-title">📋 Toutes les opérations</div>
+      <div id="op-list"></div>
+    </div>
+  </div>
+
+  <!-- PAGE HISTORIQUE BANDES -->
+  <div class="page" id="page-bandes" data-admin="true">
+    <div class="tab-bar">
+      <div class="tab on" onclick="swTabBandes('actuelle',this)">📌 Bande active</div>
+      <div class="tab" onclick="swTabBandes('archives',this)">📋 Archives</div>
+      <div class="tab" onclick="swTabBandes('nouvelle',this)">➕ Nouvelle bande</div>
+    </div>
+    <!-- BANDE ACTIVE -->
+    <div id="bandes-actuelle">
+      <div id="bande-active-detail"></div>
+    </div>
+    <!-- ARCHIVES -->
+    <div id="bandes-archives" style="display:none">
+      <div id="bandes-list"></div>
+    </div>
+    <!-- NOUVELLE BANDE -->
+    <div id="bandes-nouvelle" style="display:none">
+      <div class="card">
+        <div class="card-title">➕ Créer une nouvelle bande</div>
+        <div class="ab a-warn"><span class="ab-icon">⚠️</span>Créer une nouvelle bande clôture automatiquement la bande en cours</div>
+        <div class="form-group"><label class="form-lbl">Nom de la bande</label><input class="form-inp" type="text" id="new-bande-nom" placeholder="Ex: Bande Juin 2026"></div>
+        <div class="form-group"><label class="form-lbl">Date de mise en place</label><input class="form-inp" type="date" id="new-bande-date"></div>
+        <div class="form-group"><label class="form-lbl">Effectif initial (nombre de poussins)</label><input class="form-inp" type="number" id="new-bande-eff" placeholder="1100"></div>
+        <div class="form-group"><label class="form-lbl">Souche</label>
+          <select class="form-sel" id="new-bande-souche" style="width:100%">
+            <option value="cobb500">Cobb 500</option>
+            <option value="ross308">Ross 308</option>
+            <option value="mixte">Mixte Cobb 500 / Ross 308</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-lbl">% Lot A (abattage J35)</label><input class="form-inp" type="number" id="new-bande-lota" value="50" min="0" max="100"><span style="font-size:.8rem;color:var(--gray-t)">Lot B = reste</span></div>
+        <div class="form-group"><label class="form-lbl">Prix poussin (FCFA)</label><input class="form-inp" type="number" id="new-bande-prix-p" value="750"></div>
+        <button class="btn-p" onclick="creerBande()">🐥 Créer la bande</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE COÛTS -->
+  <div class="page" id="page-couts" data-admin="true">
+    <div class="card">
+      <div class="card-title">⚙️ Prix des intrants</div>
+      <div class="inp-row"><span class="inp-icon">🌽</span><span class="inp-lbl">Prix maïs</span><input class="inp-field" type="number" id="prix-mais" value="150"><span class="inp-unit">FCFA/kg</span></div>
+      <div class="inp-row"><span class="inp-icon">🫘</span><span class="inp-lbl">Prix soja</span><input class="inp-field" type="number" id="prix-soja" value="360"><span class="inp-unit">FCFA/kg</span></div>
+      <div class="inp-row"><span class="inp-icon">🧪</span><span class="inp-lbl">Prix Concentré</span><input class="inp-field" type="number" id="prix-conc" value="900"><span class="inp-unit">FCFA/kg</span></div>
+      <div class="inp-row"><span class="inp-icon">💊</span><span class="inp-lbl">Budget médicaments (bande)</span><input class="inp-field" type="number" id="prix-medic" value="80000"><span class="inp-unit">FCFA</span></div>
+      <div class="inp-row"><span class="inp-icon">👷</span><span class="inp-lbl">Salaires (bande)</span><input class="inp-field" type="number" id="prix-sal" value="60000"><span class="inp-unit">FCFA</span></div>
+      <div class="inp-row"><span class="inp-icon">💡</span><span class="inp-lbl">Eau + électricité (bande)</span><input class="inp-field" type="number" id="prix-elec" value="20000"><span class="inp-unit">FCFA</span></div>
+      <div class="inp-row"><span class="inp-icon">🔪</span><span class="inp-lbl">Coût abattage/sujet</span><input class="inp-field" type="number" id="prix-abt" value="100"><span class="inp-unit">FCFA</span></div>
+      <div class="inp-row"><span class="inp-icon">💰</span><span class="inp-lbl">Prix vente carcasse</span><input class="inp-field" type="number" id="prix-vte" value="2400"><span class="inp-unit">FCFA/kg</span></div>
+      <button class="btn-p" onclick="savePrix(); calcCout()">💾 Enregistrer & Calculer</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Coût de revient — Jour <span id="cr-jour">—</span></div>
+      <div id="cr-alerte"></div>
+      <div class="res-row"><div><div class="res-lbl">Charges cumulées totales</div></div><div class="res-val" id="cr-total">—</div></div>
+      <div class="res-row"><div><div class="res-lbl">Coût de revient / sujet vivant</div></div><div class="res-val" id="cr-sujet">—</div></div>
+      <div class="res-row" style="background:var(--red-bg)"><div><div class="res-lbl" style="color:var(--red-t)">Coût de revient / kg carcasse</div><div class="res-cible">Cible &lt;1 800 FCFA/kg</div></div><div class="res-val" id="cr-kg">—</div></div>
+      <div class="divider"></div>
+      <div class="res-row" style="background:var(--green-bg)"><div><div class="res-lbl" style="color:var(--green-t)">Marge estimée si abattage aujourd'hui</div></div><div class="res-val ok" id="cr-marge">—</div></div>
+      <div class="res-row"><div><div class="res-lbl">Taux de marge</div></div><div class="res-val" id="cr-taux">—</div></div>
+      <div class="res-row"><div><div class="res-lbl">Seuil de rentabilité</div></div><div class="res-val" id="cr-seuil">—</div></div>
+    </div>
+  </div>
+
+  <!-- PAGE MALADIES -->
+  <div class="page" id="page-maladies">
+    <div id="saison-mal"></div>
+    <div class="mal-card" onclick="togMal('newcastle')">
+      <div class="mal-head"><div style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:700"><span>🔴</span>Newcastle</div><span class="badge badge-r">Risque élevé</span></div>
+      <div class="mal-body" id="maladie-newcastle">
+        <div class="mal-sec">👁️ Ce qu'on voit sur le poulet</div>
+        <div class="mal-item">Le cou tourne sur lui-même, tourne en rond</div>
+        <div class="mal-item">Pattes et ailes paralysées</div>
+        <div class="mal-item">Larmes aux yeux, crête bleue ou violette</div>
+        <div class="mal-item">Mort subite sans signe avant</div>
+        <div class="mal-sec">🏚️ Dans le bâtiment</div>
+        <div class="mal-item">5–15 morts par jour soudainement</div>
+        <div class="mal-item">Diarrhée verdâtre très liquide</div>
+        <div class="mal-sec">⚡ Ce qu'on fait MAINTENANT</div>
+        <div class="act-item">Isoler les malades immédiatement</div>
+        <div class="act-item">NE PAS ouvrir les cadavres sans gants</div>
+        <div class="act-item">Appeler le gestionnaire — urgence</div>
+        <div class="mal-sec">🛡️ Prévention</div>
+        <div class="mal-item">Vaccin gouttes J7 + rappel eau J21</div>
+      </div>
+    </div>
+    <div class="mal-card" onclick="togMal('gumboro')">
+      <div class="mal-head"><div style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:700"><span>🟠</span>Gumboro</div><span class="badge badge-r">Risque élevé</span></div>
+      <div class="mal-body" id="maladie-gumboro">
+        <div class="mal-sec">👁️ Ce qu'on voit</div>
+        <div class="mal-item">Poussins prostrés, yeux mi-clos</div>
+        <div class="mal-item">Ventre gonflé et dur</div>
+        <div class="mal-item">Se piquent sous la queue</div>
+        <div class="mal-item">Diarrhée blanche crémeuse</div>
+        <div class="mal-sec">⚡ Action immédiate</div>
+        <div class="act-item">Électrolytes + vitamines 3 jours</div>
+        <div class="act-item">Retirer litière humide</div>
+        <div class="act-item">Appeler gestionnaire si &gt;5 morts/jour</div>
+        <div class="mal-sec">🛡️ Prévention</div>
+        <div class="mal-item">Vaccin eau de boisson J10</div>
+      </div>
+    </div>
+    <div class="mal-card" onclick="togMal('cocci')">
+      <div class="mal-head"><div style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:700"><span>🟡</span>Coccidiose</div><span class="badge badge-o">Risque modéré</span></div>
+      <div class="mal-body" id="maladie-cocci">
+        <div class="mal-sec">👁️ Ce qu'on voit</div>
+        <div class="mal-item">Sang dans les selles (rouge/brun foncé)</div>
+        <div class="mal-item">Poulets pâles, plumes ébouriffées</div>
+        <div class="mal-item">Boiterie légère</div>
+        <div class="mal-sec">⚡ Action immédiate</div>
+        <div class="act-item">Toltrazuril ou Amprolium 3 jours</div>
+        <div class="act-item">Changer litière humide</div>
+        <div class="act-item">Électrolytes pendant traitement</div>
+        <div class="mal-sec">🛡️ Prévention</div>
+        <div class="mal-item">Anticoccidien J18 + litière sèche</div>
+      </div>
+    </div>
+    <div class="mal-card" onclick="togMal('coli')">
+      <div class="mal-head"><div style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:700"><span>🟡</span>Colibacillose</div><span class="badge badge-o">Risque modéré</span></div>
+      <div class="mal-body" id="maladie-coli">
+        <div class="mal-sec">👁️ Ce qu'on voit</div>
+        <div class="mal-item">Diarrhée verdâtre très liquide</div>
+        <div class="mal-item">Boivent beaucoup, ventre gonflé</div>
+        <div class="mal-item">Forte odeur ammoniac dans le bâtiment</div>
+        <div class="mal-sec">⚡ Action immédiate</div>
+        <div class="act-item">Rechlorater eau à 3 ppm</div>
+        <div class="act-item">Brasseurs au maximum</div>
+        <div class="act-item">Enrofloxacine 5 jours (prescription)</div>
+        <div class="mal-sec">🛡️ Prévention</div>
+        <div class="mal-item">Eau chlorée + litière sèche + ventilation</div>
+      </div>
+    </div>
+    <div class="mal-card" onclick="togMal('myco')">
+      <div class="mal-head"><div style="display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:700"><span>🟢</span>Mycoplasmose</div><span class="badge badge-g">Risque faible</span></div>
+      <div class="mal-body" id="maladie-myco">
+        <div class="mal-sec">👁️ Ce qu'on voit</div>
+        <div class="mal-item">Toux, éternuements fréquents</div>
+        <div class="mal-item">Râle quand il respire</div>
+        <div class="mal-item">Yeux gonflés ou fermés</div>
+        <div class="mal-sec">⚡ Action immédiate</div>
+        <div class="act-item">Tylosine 5 jours</div>
+        <div class="act-item">Brasseurs max, ridelles 100% ouvertes</div>
+        <div class="act-item">Retirer litière mouillée</div>
+        <div class="mal-sec">🛡️ Prévention</div>
+        <div class="mal-item">Ventilation + litière sèche en permanence</div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="page" id="page-params" style="display:none">
+    <div class="card">
+      <div class="card-title">Changer les codes PIN</div>
+      <div class="ab a-warn"><span class="ab-icon">!</span>Seul le gestionnaire peut modifier les PIN</div>
+      <div class="form-group"><label class="form-lbl">Utilisateur</label><select class="form-sel" id="pin-user-sel" style="width:100%"><option value="gestionnaire">Gestionnaire</option><option value="collab1">Collaborateur 1</option><option value="collab2">Collaborateur 2</option><option value="partenaire">Partenaire</option></select></div>
+      <div class="form-group"><label class="form-lbl">Nouveau PIN (4 chiffres)</label><input class="form-inp" type="tel" id="new-pin-val" placeholder="XXXX" maxlength="4"></div>
+      <div class="form-group"><label class="form-lbl">Confirmer le nouveau PIN</label><input class="form-inp" type="tel" id="new-pin-val2" placeholder="XXXX" maxlength="4"></div>
+      <button class="btn-p" onclick="changePIN()">Mettre a jour le PIN</button>
+    </div>
+  </div>
+
+  <nav class="bot-nav">
+    <div class="nav-it active" onclick="goPage('accueil')"><span class="nav-ic">🏠</span>Accueil</div>
+    <div class="nav-it" onclick="goPage('saisie')"><span class="nav-ic">✏️</span>Saisie</div>
+    <div class="nav-it admin-only" id="nav-compta-btn" style="display:none" onclick="goPage('compta')"><span class="nav-ic">📒</span>Compta</div>
+    <div class="nav-it admin-only" id="nav-ventes-btn" style="display:none" onclick="goPage('abattage')"><span class="nav-ic">🔪</span>Ventes</div>
+    <div class="nav-it" onclick="goPage('proto')"><span class="nav-ic">💉</span>Protocole</div>
+    <div class="nav-it" onclick="goPage('stock')"><span class="nav-ic">📦</span>Stock</div>
+    <div class="nav-it admin-only" onclick="goPage('compta')"><span class="nav-ic">📒</span>Compta</div>
+    <div class="nav-it admin-only" onclick="goPage('bandes')"><span class="nav-ic">📋</span>Bandes</div>
+    <div class="nav-it admin-only" onclick="goPage('couts')"><span class="nav-ic">💰</span>Coûts</div>
+    <div class="nav-it" onclick="goPage('maladies')"><span class="nav-ic">🩺</span>Maladies</div>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════
+// AVIGEST — FERME LOUMBILA — Script complet propre
+// ════════════════════════════════════════════════
+
+// ══ CONFIG ══
+var SUPA_URL = 'https://zzudpcanpijkhojpygcq.supabase.co';
+var SUPA_KEY = 'sb_publishable_jzFhUV3gxBkusr2dgkgx8g_k0_XCcFG';
+var FARM = 'alirah';
+var currentUser = null;
+
+// ══ ÉTAT LOCAL ══
+var S = {};
+try { var _d = localStorage.getItem('kq_alirah'); if (_d) S = JSON.parse(_d); } catch(e) {}
+// Bandes multiples simultanées
+if (!S.bandes) S.bandes = [];           // toutes les bandes (actives + archivées)
+if (!S.bandeCourante) S.bandeCourante = null; // ID bande sélectionnée dans l'UI
+if (!S.saisies) S.saisies = [];
+if (!S.protocoles) S.protocoles = [];
+if (!S.litiere) S.litiere = [];
+if (!S.sante) S.sante = [];
+if (!S.stockAlim) S.stockAlim = {total:0, consomme:0, receptions:[], consoHist:[]};
+if (!S.ventes) S.ventes = [];
+if (!S.operations) S.operations = [];
+if (!S.sessionsAbattage) S.sessionsAbattage = [];
+if (!S.prix) S.prix = {mais:150, soja:360, conc:900, medic:80000, sal:60000, elec:20000, abt:100, vte:2400};
+if (!S.videSanitaire) S.videSanitaire = null;
+
+// Compatibilité avec ancien format (migration)
+if (S.bande && !S.bandes.length) {
+  S.bande.id = S.bande.id || 'B001';
+  S.bande.statut = 'active';
+  S.bandes.push(S.bande);
+  S.bandeCourante = S.bande.id;
+}
+
+function getBandeCourante() {
+  if (!S.bandeCourante || !S.bandes.length) return null;
+  return S.bandes.find(function(b) { return b.id === S.bandeCourante; }) || S.bandes[0];
+}
+
+function getBandesActives() {
+  return S.bandes.filter(function(b) { return b.statut === 'active'; });
+}
+
+function save() {
+  try { localStorage.setItem('kq_alirah', JSON.stringify(S)); } catch(e) {}
+}
+
+// ══ CATÉGORIES ══
+var CAT_DEP = ['Achat poussins','Aliment - Mais','Aliment - Soja','Aliment - Concentre','Aliment - Huile','Aliment - Coquilles','Aliment - Autres','Medicaments et vaccins','Salaires','Eau et electricite','Achat litiere','Charbon','Abattage','Glace forfait','Autres'];
+var CAT_REC = ['Vente carcasses','Vente marche','Vente gesiers et foies','Vente tetes et pattes','Vente fiente','Vente poulets vivants','Autres'];
+
+// ══ SUPABASE ══
+function supaQ(table, method, body, params) {
+  method = method || 'GET';
+  params = params || '';
+  var opts = {
+    method: method,
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json'
+    }
+  };
+  if (method !== 'GET') opts.headers['Prefer'] = 'return=representation';
+  if (body) opts.body = JSON.stringify(body);
+  return fetch(SUPA_URL + '/rest/v1/' + table + params, opts)
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .catch(function() { return null; });
+}
+
+// ══ LOADING ══
+function showLoading(msg) {
+  var el = document.getElementById('global-loading');
+  var ml = document.getElementById('loading-msg');
+  if (el) el.classList.add('show');
+  if (ml) ml.textContent = msg || 'Chargement...';
+}
+function hideLoading() {
+  var el = document.getElementById('global-loading');
+  if (el) el.classList.remove('show');
+}
+
+// ══ PIN AUTH ══
+function getPINS() {
+  try {
+    var s = localStorage.getItem('pins_alirah');
+    if (s) return JSON.parse(s);
+  } catch(e) {}
+  return {gestionnaire:'8888', collab1:'2001', collab2:'2002', partenaire:'6666'};
+}
+function savePINS(p) {
+  try { localStorage.setItem('pins_alirah', JSON.stringify(p)); } catch(e) {}
+}
+
+function pinNext(el, nxt) {
+  el.value = el.value.replace(/\D/g, '');
+  if (el.value.length === 1 && nxt) document.getElementById(nxt).focus();
+  if (!nxt && el.value.length === 1) doLogin();
+}
+
+function doLogin() {
+  var uid = document.getElementById('auth-user').value;
+  var p1 = document.getElementById('p1').value;
+  var p2 = document.getElementById('p2').value;
+  var p3 = document.getElementById('p3').value;
+  var p4 = document.getElementById('p4').value;
+  var pin = p1 + p2 + p3 + p4;
+  var errEl = document.getElementById('auth-err');
+  if (errEl) errEl.textContent = '';
+  if (!uid) { if (errEl) errEl.textContent = 'Choisis ton profil'; return; }
+  if (pin.length < 4) { if (errEl) errEl.textContent = 'Entre les 4 chiffres'; return; }
+  var sp = document.getElementById('auth-spin');
+  var bt = document.getElementById('btn-auth');
+  var tx = document.getElementById('btn-auth-txt');
+  if (sp) sp.style.display = 'inline-block';
+  if (tx) tx.textContent = 'Verification...';
+  if (bt) { bt.style.opacity = '0.7'; bt.style.pointerEvents = 'none'; }
+  setTimeout(function() {
+    var pins = getPINS();
+    if (pins[uid] !== pin) {
+      if (sp) sp.style.display = 'none';
+      if (tx) tx.textContent = "Entrer dans l'application";
+      if (bt) { bt.style.opacity = '1'; bt.style.pointerEvents = 'auto'; }
+      if (errEl) errEl.textContent = 'Code incorrect';
+      if (document.getElementById('p1')) document.getElementById('p1').value = '';
+      if (document.getElementById('p2')) document.getElementById('p2').value = '';
+      if (document.getElementById('p3')) document.getElementById('p3').value = '';
+      if (document.getElementById('p4')) document.getElementById('p4').value = '';
+      if (document.getElementById('p1')) document.getElementById('p1').focus();
+      return;
+    }
+    currentUser = uid;
+    var authEl = document.getElementById('auth');
+    var appEl = document.getElementById('app');
+    if (authEl) authEl.style.display = 'none';
+    if (appEl) appEl.style.display = 'flex';
+    var badges = {gestionnaire:'GS', collab1:'C1', collab2:'C2', partenaire:'PT'};
+    var ub = document.getElementById('user-badge');
+    if (ub) ub.textContent = badges[uid] || '?';
+    if (uid === 'gestionnaire') {
+      document.querySelectorAll('.admin-only').forEach(function(el) {
+        if (!el.classList.contains('page')) el.style.display = '';
+      });
+      var np = document.getElementById('nav-params-btn');
+      if (np) np.style.display = 'flex';
+      var nc = document.getElementById('nav-compta-btn');
+      if (nc) nc.style.display = 'flex';
+      var nv = document.getElementById('nav-ventes-btn');
+      if (nv) nv.style.display = 'flex';
+      // Afficher onglet nouvelle bande
+      var tabNew = document.getElementById('tab-acc-new');
+      if (tabNew) tabNew.style.display = 'inline-flex';
+      // Afficher section dépenses
+      var cardDep = document.getElementById('card-depenses-bande');
+      if (cardDep) cardDep.style.display = 'block';
+    }
+    if (uid === 'partenaire') {
+      document.querySelectorAll('.btn-p,.btn-g,.btn-r').forEach(function(b) { b.style.display = 'none'; });
+    }
+    updateCategories();
+    initApp();
+  }, 300);
+}
+
+function doLogout() {
+  if (!confirm('Se deconnecter ?')) return;
+  currentUser = null;
+  var authEl = document.getElementById('auth');
+  var appEl = document.getElementById('app');
+  if (authEl) authEl.style.display = 'flex';
+  if (appEl) appEl.style.display = 'none';
+  ['p1','p2','p3','p4'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  var au = document.getElementById('auth-user');
+  var ae = document.getElementById('auth-err');
+  var sp = document.getElementById('auth-spin');
+  var tx = document.getElementById('btn-auth-txt');
+  var bt = document.getElementById('btn-auth');
+  if (au) au.value = '';
+  if (ae) ae.textContent = '';
+  if (sp) sp.style.display = 'none';
+  if (tx) tx.textContent = "Entrer dans l'application";
+  if (bt) { bt.style.opacity = '1'; bt.style.pointerEvents = 'auto'; }
+}
+
+function changePIN() {
+  var user = document.getElementById('pin-user-sel') ? document.getElementById('pin-user-sel').value : '';
+  var np1 = document.getElementById('new-pin-val') ? document.getElementById('new-pin-val').value : '';
+  var np2 = document.getElementById('new-pin-val2') ? document.getElementById('new-pin-val2').value : '';
+  if (!/^\d{4}$/.test(np1)) { showToast('PIN doit etre 4 chiffres'); return; }
+  if (np1 !== np2) { showToast('Les PIN ne correspondent pas'); return; }
+  var pins = getPINS();
+  pins[user] = np1;
+  savePINS(pins);
+  if (document.getElementById('new-pin-val')) document.getElementById('new-pin-val').value = '';
+  if (document.getElementById('new-pin-val2')) document.getElementById('new-pin-val2').value = '';
+  showToast('PIN mis a jour !');
+}
+
+// ══ NAVIGATION ══
+function goPage(name) {
+  if (currentUser === 'partenaire') {
+    var allowed = ['accueil','maladies'];
+    if (allowed.indexOf(name) < 0) { showToast('Acces reserve'); return; }
+  }
+  if (currentUser !== 'gestionnaire') {
+    var adminPages = ['compta','bandes','couts','params'];
+    if (adminPages.indexOf(name) >= 0) { showToast('Acces reserve au gestionnaire'); return; }
+  }
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-it').forEach(function(n) { n.classList.remove('active'); });
+  var pg = document.getElementById('page-' + name);
+  if (pg) pg.classList.add('active');
+  var navMap = {accueil:0,saisie:1,proto:2,stock:3,abattage:4,compta:5,bandes:6,couts:7,maladies:8};
+  var allNav = document.querySelectorAll('.nav-it');
+  if (allNav[navMap[name]]) allNav[navMap[name]].classList.add('active');
+  var titles = {accueil:'Tableau de bord',saisie:'Saisie',proto:'Protocole sante',stock:'Stocks',abattage:'Ventes et abattage',compta:'Comptabilite',bandes:'Gestion bandes',couts:'Cout de revient',params:'Parametres',maladies:'Guide maladies'};
+  var pt = document.getElementById('page-title');
+  if (pt) pt.textContent = titles[name] || '';
+  if (name === 'accueil') renderAccueil();
+  if (name === 'proto') { renderProto(); checkProtoAlertes(); }
+  if (name === 'stock') { renderStockRecep(); renderStockConso(); renderStockDispo(); renderPoussins(); }
+  if (name === 'abattage') { renderVentes(); renderSessions(); }
+  if (name === 'compta') { renderCompta(); updateCategories(); }
+  if (name === 'bandes') renderBandes();
+  if (name === 'couts') { loadPrix(); calcCout(); }
+  if (name === 'maladies') renderSaisonMal();
+}
+
+function swTab(id,btn) {
+  ['matin','soir','pesee','litiere','sante'].forEach(function(t) {
+    var el = document.getElementById('saisie-'+t);
+    if (el) el.style.display = 'none';
+  });
+  var target = document.getElementById('saisie-'+id);
+  if (target) target.style.display = 'block';
+  document.querySelectorAll('#page-saisie .tab').forEach(function(t) { t.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+}
+
+function swTabProto(id,btn) {
+  ['calendrier','planifier','vide'].forEach(function(t) {
+    var el = document.getElementById('proto-'+t);
+    if (el) el.style.display = 'none';
+  });
+  var target = document.getElementById('proto-'+id);
+  if (target) target.style.display = 'block';
+  document.querySelectorAll('#page-proto .tab').forEach(function(t) { t.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  if (id === 'vide') renderVide();
+}
+
+function swTabStock(id,btn) {
+  ['stock_initial','consommation','disponible','poussins'].forEach(function(t) {
+    var el = document.getElementById('stock-'+t);
+    if (el) el.style.display = 'none';
+  });
+  var target = document.getElementById('stock-'+id);
+  if (target) target.style.display = 'block';
+  document.querySelectorAll('#page-stock .tab').forEach(function(t) { t.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  if (id === 'disponible') renderStockDispo();
+  if (id === 'poussins') renderPoussins();
+}
+
+function swTabAbt(id,btn) {
+  ['sessions','nouvelle','historique'].forEach(function(t) {
+    var el = document.getElementById('abt-'+t);
+    if (el) el.style.display = 'none';
+  });
+  var target = document.getElementById('abt-'+id);
+  if (target) target.style.display = 'block';
+  document.querySelectorAll('#page-abattage .tab').forEach(function(t) { t.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  if (id === 'historique') renderVentes();
+  if (id === 'sessions') renderSessions();
+  if (id === 'nouvelle') renderSessionSel();
+}
+
+function swTabCompta(id,btn) {
+  ['saisir','bilan','detail'].forEach(function(t) {
+    var el = document.getElementById('compta-'+t);
+    if (el) el.style.display = 'none';
+  });
+  var target = document.getElementById('compta-'+id);
+  if (target) target.style.display = 'block';
+  document.querySelectorAll('#page-compta .tab').forEach(function(t) { t.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  if (id === 'bilan' || id === 'detail') renderCompta();
+}
+
+function swTabBandes(id,btn) {
+  ['actuelle','archives','nouvelle'].forEach(function(t) {
+    var el = document.getElementById('bandes-'+t);
+    if (el) el.style.display = 'none';
+  });
+  var target = document.getElementById('bandes-'+id);
+  if (target) target.style.display = 'block';
+  document.querySelectorAll('#page-bandes .tab').forEach(function(t) { t.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  renderBandes();
+}
+
+// ══ UTILS ══
+function getCurJour() {
+  var bc = getBandeCourante();
+  return bc ? Math.max(1, Math.floor((new Date() - new Date(bc.dateDebut)) / 86400000) + 1) : 1;
+}
+
+function togChk(el) {
+  el.classList.toggle('done');
+  var b = el.querySelector('.chk-box');
+  if (b) b.textContent = el.classList.contains('done') ? 'v' : '';
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+
+function updateJour() {
+  var bc = getBandeCourante();
+  var j = bc ? Math.max(1, Math.floor((new Date()-new Date(bc.dateDebut))/86400000)+1) : 1;
+  var ja = document.getElementById('jour-act');
+  var bn = document.getElementById('bande-nom-top');
+  if (ja) ja.textContent = j;
+  if (bn) bn.textContent = bc ? (bc.numSerie + ' — ' + bc.nom) : 'Aucune bande';
+}
+
+function updateCategories() {
+  var t = document.getElementById('op-type');
+  var sel = document.getElementById('op-cat');
+  if (!t || !sel) return;
+  var cats = t.value === 'depense' ? CAT_DEP : CAT_REC;
+  sel.innerHTML = cats.map(function(c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
+}
+
+// ══ INIT ══
+function initApp() {
+  updateJour();
+  renderAccueil();
+  renderProto();
+  renderStockRecep();
+  renderStockConso();
+  renderStockDispo();
+  renderPoussins();
+  renderVentes();
+  renderCompta();
+  renderBandes();
+  renderSessions();
+  checkProtoAlertes();
+  if (typeof loadDepenses === 'function') loadDepenses();
+  renderBandeSel();
+  var today = new Date().toISOString().split('T')[0];
+  ['in-lit-date','in-san-date','abt-date','op-date','new-bande-date','new-proto-date','stock-init-date','conso-date'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = today;
+  });
+}
+
+function syncFromSupabase() {
+  supaQ('saisies', 'GET', null, '?ferme=eq.' + FARM + '&order=created_at.desc&limit=5')
+    .then(function(res) { if (res && res.length) renderAccueil(); })
+    .catch(function() {});
+}
+
+// ══ ACCUEIL ══
+function renderAccueil() {
+  updateJour();
+  var s = S.saisies && S.saisies.length ? S.saisies[S.saisies.length - 1] : null;
+  if (s) {
+    var et = document.getElementById('kpi-temp');
+    if (et) { et.textContent = s.temp + 'C'; et.className = 'kpi-val ' + (s.temp > 35 ? 'danger' : s.temp > 33 ? 'warn' : 'ok'); }
+    var es = document.getElementById('kpi-temp-s');
+    if (es) es.textContent = s.temp > 35 ? 'URGENCE' : s.temp > 33 ? 'Eleve' : 'Normal';
+    var eh = document.getElementById('kpi-hr');
+    if (eh) { eh.textContent = s.hr + '%'; eh.className = 'kpi-val ' + (s.hr > 70 ? 'danger' : s.hr > 65 ? 'warn' : 'ok'); }
+    var ehs = document.getElementById('kpi-hr-s');
+    if (ehs) ehs.textContent = s.hr > 70 ? 'CRITIQUE' : s.hr > 65 ? 'Surveiller' : 'Normal';
+    var em = document.getElementById('kpi-morts');
+    if (em) em.textContent = s.morts || 0;
+    renderAlertes(s.temp, s.hr);
+  }
+  var bc = getBandeCourante();
+  var mortalite = bc ? (S.saisies||[]).filter(function(s){return s.type==='matin'&&s.bande===bc.id;}).reduce(function(a,s){return a+(s.morts||0);},0) : 0;
+  var vivants = bc ? (bc.effectif - mortalite) : null;
+  if (vivants !== null) {
+    var ev = document.getElementById('kpi-vivants');
+    var evs = document.getElementById('kpi-vivants-s');
+    if (ev) ev.textContent = vivants;
+    if (evs) evs.textContent = 'sur ' + bc.effectif;
+  }
+  var bi = document.getElementById('bande-info-accueil');
+  if (bi) {
+    if (bc) {
+      var j = getCurJour();
+      var pct = Math.round(j / 45 * 100);
+      var autresBandes = getBandesActives().filter(function(b){return b.id!==bc.id;});
+      bi.innerHTML = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+        + '<div style="font-weight:700;color:var(--primary);font-size:1rem">' + bc.nom + '</div>'
+        + '<span style="background:var(--primary);color:var(--gold);border-radius:4px;padding:2px 8px;font-size:.72rem;font-weight:700">' + (bc.numSerie||'N/A') + '</span>'
+        + '</div>'
+        + '<div style="font-size:.82rem;color:var(--gray-t);margin-bottom:.5rem">Debut : ' + new Date(bc.dateDebut).toLocaleDateString('fr-FR') + ' &bull; ' + bc.effectif + ' sujets &bull; ' + (bc.souche||'') + '</div>'
+        + '<div class="prog-bg"><div class="prog-fill" style="width:' + Math.min(pct,100) + '%"></div></div>'
+        + (autresBandes.length ? '<div style="font-size:.78rem;color:var(--blue-t);margin-top:6px">+ ' + autresBandes.length + ' autre(s) bande(s) active(s)</div>' : '');
+    } else {
+      bi.innerHTML = '<div style="color:var(--gray-t);font-size:.85rem;text-align:center;padding:.5rem">Aucune bande — creer une bande ci-dessus</div>';
+    }
+  }
+  renderBandeSel();
+  var cCout = document.getElementById('card-cout-live');
+  if (cCout) cCout.style.display = bc ? 'block' : 'none';
+  calcLive();
+}
+
+function renderAlertes(temp, hr) {
+  var z = document.getElementById('alertes-zone');
+  if (!z) return;
+  var al = [];
+  if (temp > 35) al.push({c:'a-danger',i:'!',m:'URGENCE T=' + temp + 'C — Agir immediatement !'});
+  else if (temp > 33) al.push({c:'a-warn',i:'!',m:'T=' + temp + 'C — Brasseurs max'});
+  if (hr > 70) al.push({c:'a-danger',i:'!',m:'Humidite CRITIQUE ' + hr + '% — NE PAS brumiser'});
+  else if (hr > 65) al.push({c:'a-warn',i:'!',m:'Humidite ' + hr + '% — Arreter brumisation'});
+  if (!al.length) al.push({c:'a-ok',i:'OK',m:'Parametres dans les normes'});
+  z.innerHTML = al.map(function(a) { return '<div class="ab ' + a.c + '"><span class="ab-icon">' + a.i + '</span>' + a.m + '</div>'; }).join('');
+}
+
+function calcLive() {
+  if (!S.bande) return;
+  var j = getCurJour();
+  var p = S.prix || {};
+  var effInit = S.bande.effectif;
+  var morts = S.mortaliteCumul || 0;
+  var vivants = effInit - morts;
+  var alim = S.alimCumul || 0;
+  var poids = S.dernierPoids || Math.round(j * 48);
+  var pm, ps, pc;
+  if (j <= 10) { pm=0.48; ps=0.24; pc=0.28; }
+  else if (j <= 28) { pm=0.53; ps=0.21; pc=0.26; }
+  else { pm=0.59; ps=0.17; pc=0.24; }
+  var prixAlim = pm*(p.mais||150) + ps*(p.soja||360) + pc*(p.conc||900);
+  var chP = effInit * (S.bande.prixPoussin || 750);
+  var chA = Math.round((alim || j*effInit*0.08) * prixAlim);
+  var chM = Math.round((p.medic||80000) * j / 45);
+  var chS = Math.round((p.sal||60000) * j / 45);
+  var chE = Math.round((p.elec||20000) * j / 45);
+  var tot = chP + chA + chM + chS + chE;
+  var crS = vivants > 0 ? Math.round(tot / vivants) : 0;
+  var carc = Math.round(poids * 0.75) / 1000;
+  var crKg = carc > 0 ? Math.round(crS / carc) : 0;
+  var rev = Math.round(carc * (p.vte||2400)) * vivants;
+  var abt = (p.abt||100) * vivants;
+  var marge = rev - tot - abt;
+  var ids = {
+    'live-vivants': vivants, 'live-morts-cum': morts,
+    'live-alim': S.stockAlim ? (S.stockAlim.consomme||0) : 0,
+    'live-cr-sujet': crS.toLocaleString('fr-FR') + ' F',
+    'live-cr-kg': crKg.toLocaleString('fr-FR') + ' F/kg',
+    'live-marge': Math.round(Math.abs(marge)/1000) + 'k F'
+  };
+  Object.keys(ids).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = ids[id];
+  });
+  var lvs = document.getElementById('live-vivants-s');
+  if (lvs) lvs.textContent = 'sur ' + effInit;
+  var lmp = document.getElementById('live-mort-pct');
+  if (lmp) lmp.textContent = (morts/effInit*100).toFixed(1) + '%';
+  var lms = document.getElementById('live-marge-s');
+  if (lms) lms.textContent = marge < 0 ? 'Perte estimee' : 'Benefice estime';
+}
+
+// ══ SAISIE ══
+function evalAmb() {
+  var t = parseFloat(document.getElementById('in-temp').value);
+  var h = parseFloat(document.getElementById('in-hr').value);
+  var z = document.getElementById('amb-alert');
+  if (!z) return;
+  var al = [];
+  if (!isNaN(t)) { if (t>35) al.push({c:'a-danger',m:'T URGENCE'}); else if (t>33) al.push({c:'a-warn',m:'T elevee'}); else al.push({c:'a-ok',m:'T correcte'}); }
+  if (!isNaN(h)) { if (h>70) al.push({c:'a-danger',m:'HR CRITIQUE'}); else if (h>65) al.push({c:'a-warn',m:'HR a surveiller'}); else al.push({c:'a-ok',m:'HR correcte'}); }
+  z.innerHTML = al.map(function(a) { return '<div class="ab ' + a.c + '">' + a.m + '</div>'; }).join('');
+}
+
+function saveMatin() {
+  var tEl = document.getElementById('in-temp');
+  var hEl = document.getElementById('in-hr');
+  var mEl = document.getElementById('in-morts');
+  var aEl = document.getElementById('in-alim');
+  if (!tEl || !hEl) return;
+  var t = parseFloat(tEl.value);
+  var h = parseFloat(hEl.value);
+  if (isNaN(t) || isNaN(h)) { showToast('Saisis T et humidite !'); return; }
+  var m = parseInt(mEl ? mEl.value : 0) || 0;
+  var a = parseFloat(aEl ? aEl.value : 0) || 0;
+  S.mortaliteCumul = (S.mortaliteCumul || 0) + m;
+  S.alimCumul = (S.alimCumul || 0) + a;
+  var bc_m = getBandeCourante();
+  S.saisies.push({type:'matin',jour:getCurJour(),bande:bc_m?bc_m.id:'',bandeSerie:bc_m?bc_m.numSerie:'',date:new Date().toLocaleDateString('fr-FR'),temp:t,hr:h,morts:m,alim:a,user:currentUser});
+  if (S.saisies.length > 180) S.saisies = S.saisies.slice(-180);
+  save();
+  supaQ('saisies', 'POST', {ferme:FARM,type:'matin',jour:getCurJour(),date_saisie:new Date().toISOString().split('T')[0],temp:t,hr:h,morts:m,alim:a,user_label:currentUser});
+  renderAccueil();
+  showToast('Saisie du matin enregistree !');
+  setTimeout(function() { goPage('accueil'); }, 600);
+}
+
+function saveSoir() {
+  save();
+  showToast('Saisie du soir enregistree !');
+  setTimeout(function() { goPage('accueil'); }, 600);
+}
+
+function calcPesee() {
+  var nb = parseFloat(document.getElementById('in-nb-p').value) || 50;
+  var pt = parseFloat(document.getElementById('in-pt').value);
+  var pp = parseFloat(document.getElementById('in-pp').value);
+  var as = parseFloat(document.getElementById('in-as').value);
+  if (isNaN(pt)) return;
+  var pm = Math.round(pt / nb);
+  var rp = document.getElementById('res-pm');
+  if (rp) rp.textContent = pm + ' g';
+  if (!isNaN(pp)) {
+    var ppm = Math.round(pp / nb);
+    var gmq = Math.round((pm - ppm) / 7);
+    var eg = document.getElementById('res-gmq');
+    if (eg) { eg.textContent = gmq + ' g/jour'; eg.className = 'res-val ' + (gmq<45?'danger':gmq<55?'warn':'ok'); }
+    if (!isNaN(as)) {
+      var gain = (pm - ppm) * 1100 / 1000;
+      var ic = gain > 0 ? (as / gain).toFixed(2) : '-';
+      var ei = document.getElementById('res-ic');
+      if (ei) { ei.textContent = ic; ei.className = 'res-val ' + (parseFloat(ic)>2.3?'danger':parseFloat(ic)>2.0?'warn':'ok'); }
+    }
+    var pa = document.getElementById('pesee-alert');
+    if (pa) pa.innerHTML = gmq < 45 ? '<div class="ab a-danger">GMQ insuffisant</div>' : gmq < 55 ? '<div class="ab a-warn">GMQ en dessous cible</div>' : '<div class="ab a-ok">Excellente croissance !</div>';
+  }
+}
+
+function savePesee() {
+  var nb = parseFloat(document.getElementById('in-nb-p').value) || 50;
+  var pt = parseFloat(document.getElementById('in-pt').value);
+  var pp = parseFloat(document.getElementById('in-pp').value);
+  var as = parseFloat(document.getElementById('in-as').value);
+  if (isNaN(pt)) { showToast('Saisis le poids total !'); return; }
+  var pm = Math.round(pt / nb);
+  S.dernierPoids = pm;
+  if (!isNaN(pp)) S.dernierGMQ = Math.round((pm - Math.round(pp/nb)) / 7);
+  save();
+  showToast('Pesee enregistree !');
+  setTimeout(function() { goPage('accueil'); }, 600);
+}
+
+function saveLitiere() {
+  var d = document.getElementById('in-lit-date');
+  var t = document.getElementById('in-lit-type');
+  var q = document.getElementById('in-lit-qte');
+  if (!d || !d.value) { showToast('Indique la date !'); return; }
+  var labels = {coque_arachide:"Coque arachide", coque_riz:"Coque riz", copeaux_bois:"Copeaux bois"};
+  S.litiere.push({date:d.value, type:t?t.value:'', label:labels[t?t.value:'']||'', qte:q?q.value:'', user:currentUser, ts:Date.now()});
+  save();
+  renderLitiereHist();
+  showToast('Changement enregistre !');
+}
+
+function renderLitiereHist() {
+  var z = document.getElementById('lit-hist');
+  if (!z) return;
+  if (!S.litiere.length) { z.innerHTML = '<div style="color:var(--gray-t);font-size:.82rem;text-align:center">Aucun enregistrement</div>'; return; }
+  z.innerHTML = '<table class="tbl"><tr><th>Date</th><th>Nature</th><th>Qte</th></tr>' + [].concat(S.litiere).reverse().map(function(l) { return '<tr><td>' + l.date + '</td><td>' + (l.label||'') + '</td><td>' + (l.qte||'-') + ' kg</td></tr>'; }).join('') + '</table>';
+}
+
+function saveSante() {
+  var prod = document.getElementById('in-san-prod');
+  if (!prod || !prod.value) { showToast('Indique le produit !'); return; }
+  S.sante.push({date:(document.getElementById('in-san-date')||{}).value||'',type:(document.getElementById('in-san-type')||{}).value||'',prod:prod.value,dose:(document.getElementById('in-san-dose')||{}).value||'',user:currentUser,ts:Date.now()});
+  save();
+  showToast('Intervention enregistree !');
+}
+
+// ══ PROTOCOLE ══
+function saveProto() {
+  var prod = document.getElementById('new-proto-prod');
+  var date = document.getElementById('new-proto-date');
+  if (!prod||!prod.value||!date||!date.value) { showToast('Produit et date obligatoires !'); return; }
+  S.protocoles.push({type:(document.getElementById('new-proto-type')||{}).value||'',prod:prod.value,date:date.value,dose:(document.getElementById('new-proto-dose')||{}).value||'',notes:(document.getElementById('new-proto-notes')||{}).value||'',fait:false,ts:Date.now()});
+  save();
+  renderProto();
+  showToast('Intervention planifiee !');
+}
+
+function renderProto() {
+  var z = document.getElementById('proto-list');
+  if (!z) return;
+  var today = new Date(); today.setHours(0,0,0,0);
+  if (!S.protocoles.length) { z.innerHTML = '<div style="color:var(--gray-t);font-size:.82rem;text-align:center;padding:1rem">Aucune intervention planifiee</div>'; return; }
+  var sorted = [].concat(S.protocoles).sort(function(a,b) { return new Date(a.date)-new Date(b.date); });
+  z.innerHTML = sorted.map(function(p, i) {
+    var d = new Date(p.date); d.setHours(0,0,0,0);
+    var diff = Math.round((d - today) / 86400000);
+    var badge = '';
+    var cls = 'proto-item';
+    if (p.fait) { cls += ' proto-done'; badge = '<span class="badge badge-g">Fait</span>'; }
+    else if (diff === 0) badge = '<span class="badge badge-o">Aujourd\'hui</span>';
+    else if (diff === 1) badge = '<span class="badge badge-o">Demain</span>';
+    else if (diff < 0) badge = '<span class="badge badge-r">En retard</span>';
+    return '<div class="' + cls + '"><div class="proto-jour">' + p.type.charAt(0).toUpperCase() + '</div>'
+      + '<div style="flex:1"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px"><div style="font-size:.88rem;font-weight:700">' + p.prod + '</div>' + badge + '</div>'
+      + '<div style="font-size:.78rem;color:var(--gray-t)">' + new Date(p.date).toLocaleDateString('fr-FR') + '</div>'
+      + (p.notes ? '<div style="font-size:.75rem;color:var(--gray-t)">' + p.notes + '</div>' : '')
+      + ((!p.fait && currentUser==='gestionnaire') ? '<button class="btn-g" style="margin-top:6px;background:var(--green);color:white;font-size:.75rem" onclick="marquerFait(' + i + ')">Marquer fait</button>' : '')
+      + '</div></div>';
+  }).join('');
+}
+
+function marquerFait(idx) {
+  var sorted = [].concat(S.protocoles).sort(function(a,b) { return new Date(a.date)-new Date(b.date); });
+  var orig = S.protocoles.indexOf(sorted[idx]);
+  if (orig >= 0) { S.protocoles[orig].fait = true; save(); renderProto(); showToast('Marque comme fait !'); }
+}
+
+function checkProtoAlertes() {
+  var today = new Date(); today.setHours(0,0,0,0);
+  var alertes = S.protocoles.filter(function(p) {
+    if (p.fait) return false;
+    var d = new Date(p.date); d.setHours(0,0,0,0);
+    var diff = Math.round((d - today) / 86400000);
+    return diff >= 0 && diff <= 2;
+  });
+  var html = alertes.map(function(p) {
+    var d = new Date(p.date); d.setHours(0,0,0,0);
+    var diff = Math.round((d - today) / 86400000);
+    var msg = diff===0?'AUJOURD\'HUI':diff===1?'DEMAIN':'Dans 2 jours';
+    return '<div class="ab a-warn"><span class="ab-icon">!</span>' + msg + ' : ' + p.prod + '</div>';
+  }).join('');
+  var z = document.getElementById('proto-alertes-zone');
+  var zb = document.getElementById('proto-alertes-banner');
+  if (z) z.innerHTML = html;
+  if (zb) zb.innerHTML = html;
+}
+
+// ══ VIDE SANITAIRE ══
+var VIDE_STEPS = [
+  {j:'J0',titre:'Abattage dernier lot + evacuation litiere',desc:'Retirer tous les animaux et evacuer toute la litiere'},
+  {j:'J1',titre:'Nettoyage a sec',desc:'Balayage, grattage du sol'},
+  {j:'J2',titre:'Trempage eau + detergent (12h)',desc:'Mouiller toutes les surfaces avec solution detergente'},
+  {j:'J3',titre:'Nettoyage haute pression',desc:'Lavage au karcher de toutes les surfaces'},
+  {j:'J4',titre:'Sechage (48h minimum)',desc:'Laisser secher completement avant desinfection'},
+  {j:'J6',titre:'Desinfection 1 (formol 2% ou Virkon S)',desc:'Appliquer sur toutes les surfaces seches'},
+  {j:'J7',titre:'Aeration 24h',desc:'Ouvrir toutes les ouvertures pour aerer'},
+  {j:'J8',titre:'Desinfection 2 (chaux vive au sol)',desc:'Appliquer la chaux vive sur le sol'},
+  {j:'J10',titre:'Vide total 11 jours supplementaires',desc:'Maintenir le batiment vide et ferme'},
+  {j:'J21',titre:'Mise en place nouvelle litiere',desc:'Etaler la litiere propre - epaisseur 8-10 cm'},
+  {j:'J22',titre:'Reception nouveaux poussins',desc:'Verifier T et equipements avant reception'},
+];
+
+function renderVide() {
+  var done = S.videSanitaire || [];
+  var total = VIDE_STEPS.length;
+  var nbDone = done.filter(Boolean).length;
+  var pct = Math.round(nbDone / total * 100);
+  var z = document.getElementById('vide-list');
+  if (!z) return;
+  z.innerHTML = VIDE_STEPS.map(function(step, i) {
+    return '<div class="chk-item ' + (done[i]?'done':'') + '" onclick="toggleVide(' + i + ')" style="align-items:flex-start">'
+      + '<div class="chk-box" style="margin-top:2px">' + (done[i]?'v':'') + '</div>'
+      + '<div style="flex:1"><div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">'
+      + '<span style="background:var(--primary);color:var(--gold);border-radius:4px;padding:2px 6px;font-size:.72rem;font-weight:700">' + step.j + '</span>'
+      + '<span style="font-size:.85rem;font-weight:700">' + step.titre + '</span></div>'
+      + '<div style="font-size:.75rem;color:#666">' + step.desc + '</div></div></div>';
+  }).join('');
+  var zp = document.getElementById('vide-progress');
+  if (!zp) return;
+  var col = pct===100?'var(--green)':pct>50?'var(--orange)':'var(--red)';
+  zp.innerHTML = '<div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:6px"><span>' + nbDone + '/' + total + ' etapes</span><span style="font-weight:700;color:' + col + '">' + pct + '%</span></div>'
+    + '<div class="prog-bg"><div class="prog-fill" style="width:' + pct + '%;background:' + col + '"></div></div>'
+    + (pct===100 ? '<div class="ab a-ok" style="margin-top:.5rem">Batiment pret !</div>' : '');
+}
+
+function toggleVide(idx) {
+  if (!S.videSanitaire) S.videSanitaire = new Array(VIDE_STEPS.length).fill(false);
+  S.videSanitaire[idx] = !S.videSanitaire[idx];
+  save(); renderVide();
+}
+
+function resetVide() {
+  if (!confirm('Reinitialiser ?')) return;
+  S.videSanitaire = new Array(VIDE_STEPS.length).fill(false);
+  save(); renderVide(); showToast('Reinitialise');
+}
+
+// ══ STOCK ══
+function saveStockInit() {
+  var s = document.getElementById('stock-init-sacs');
+  var d = document.getElementById('stock-init-date');
+  var n = document.getElementById('stock-init-note');
+  var sacs = parseInt(s ? s.value : 0) || 0;
+  if (!sacs) { showToast('Saisis un nombre de sacs !'); return; }
+  if (!S.stockAlim.receptions) S.stockAlim.receptions = [];
+  S.stockAlim.total = (S.stockAlim.total || 0) + sacs;
+  S.stockAlim.receptions.push({sacs:sacs, date:d?d.value:'', note:n?n.value:'', user:currentUser, ts:Date.now()});
+  save(); renderStockRecep(); renderStockDispo();
+  if (s) s.value = '';
+  showToast(sacs + ' sacs enregistres !');
+}
+
+function saveConso() {
+  var s = document.getElementById('conso-sacs');
+  var d = document.getElementById('conso-date');
+  var sacs = parseInt(s ? s.value : 1) || 1;
+  var dispo = (S.stockAlim.total||0) - (S.stockAlim.consomme||0);
+  if (sacs > dispo) { showToast('Stock insuffisant ! Disponible : ' + dispo + ' sacs'); return; }
+  S.stockAlim.consomme = (S.stockAlim.consomme||0) + sacs;
+  if (!S.stockAlim.consoHist) S.stockAlim.consoHist = [];
+  S.stockAlim.consoHist.push({sacs:sacs, kg:sacs*50, date:new Date(d?d.value:Date.now()).toLocaleDateString('fr-FR'), user:currentUser, ts:Date.now()});
+  save(); renderStockConso(); renderStockDispo();
+  var restant = dispo - sacs;
+  showToast(restant <= 5 ? 'ALERTE : ' + restant + ' sac(s) restant(s) !' : sacs + ' sac(s) consomme(s). Reste : ' + restant);
+}
+
+function renderStockRecep() {
+  var z = document.getElementById('stock-recep-hist');
+  if (!z) return;
+  var recs = S.stockAlim.receptions || [];
+  if (!recs.length) { z.innerHTML = '<div style="color:var(--gray-t);font-size:.82rem;text-align:center">Aucune reception</div>'; return; }
+  z.innerHTML = '<table class="tbl"><tr><th>Date</th><th>Sacs</th><th>Note</th></tr>' + [].concat(recs).reverse().map(function(r) { return '<tr><td>' + r.date + '</td><td style="font-weight:700;color:var(--green)">' + r.sacs + '</td><td>' + (r.note||'-') + '</td></tr>'; }).join('') + '</table>';
+}
+
+function renderStockConso() {
+  var z = document.getElementById('conso-hist');
+  if (!z) return;
+  var hist = S.stockAlim.consoHist || [];
+  if (!hist.length) { z.innerHTML = '<div style="color:var(--gray-t);font-size:.82rem;text-align:center">Aucune consommation</div>'; return; }
+  z.innerHTML = '<table class="tbl"><tr><th>Date</th><th>Sacs</th><th>Kg</th></tr>' + [].concat(hist).reverse().slice(0,30).map(function(h) { return '<tr><td>' + h.date + '</td><td style="color:var(--red);font-weight:700">' + h.sacs + '</td><td>' + h.kg + '</td></tr>'; }).join('') + '</table>';
+}
+
+function renderStockDispo() {
+  var z = document.getElementById('stock-dispo-display');
+  if (!z) return;
+  var total = S.stockAlim.total || 0;
+  var consomme = S.stockAlim.consomme || 0;
+  var dispo = total - consomme;
+  var pct = total > 0 ? Math.round(dispo/total*100) : 0;
+  var col = dispo <= 5 ? 'var(--red)' : dispo <= 15 ? 'var(--orange)' : 'var(--green)';
+  z.innerHTML = '<div class="kpi-grid"><div class="kpi"><div class="kpi-lbl">Total recu</div><div class="kpi-val">' + total + '</div><div class="kpi-sub">sacs</div></div>'
+    + '<div class="kpi"><div class="kpi-lbl">Consomme</div><div class="kpi-val danger">' + consomme + '</div><div class="kpi-sub">sacs</div></div>'
+    + '<div class="kpi" style="grid-column:1/-1"><div class="kpi-lbl">DISPONIBLE</div><div class="kpi-val" style="color:' + col + ';font-size:2rem">' + dispo + ' sacs</div><div class="kpi-sub">' + dispo*50 + ' kg</div></div></div>'
+    + '<div class="stock-bar"><div class="stock-fill" style="width:' + Math.min(pct,100) + '%;background:' + col + '"></div></div>'
+    + (dispo<=5 ? '<div class="ab a-danger">CRITIQUE — Commander !</div>' : dispo<=15 ? '<div class="ab a-warn">Stock faible</div>' : '');
+}
+
+function renderStock() { renderStockRecep(); renderStockConso(); renderStockDispo(); }
+
+function renderPoussins() {
+  var eff = S.bande ? S.bande.effectif : 0;
+  var morts = S.mortaliteCumul || 0;
+  var vivants = eff - morts;
+  var pct = eff ? (morts/eff*100).toFixed(1) : '-';
+  var ids = {'eff-init':eff||'-','eff-morts':morts,'eff-vivants':vivants||'-','eff-pct':pct+'%'};
+  Object.keys(ids).forEach(function(id) { var el=document.getElementById(id); if(el)el.textContent=ids[id]; });
+  var ep = document.getElementById('eff-pct');
+  if (ep) ep.className = 'kpi-val ' + (parseFloat(pct)>5?'danger':parseFloat(pct)>3?'warn':'ok');
+  var pctViv = eff ? Math.round(vivants/eff*100) : 100;
+  var bar = document.getElementById('eff-bar');
+  if (bar) { bar.style.width = pctViv + '%'; bar.style.background = pctViv>90?'var(--green)':pctViv>80?'var(--orange)':'var(--red)'; }
+}
+
+// ══ VENTES ══
+function updateVenteFields() {
+  var type = document.getElementById('abt-type') ? document.getElementById('abt-type').value : 'carcasse';
+  var champPoids = document.getElementById('champ-poids');
+  var champNb = document.getElementById('champ-nb');
+  var lblPrix = document.getElementById('lbl-prix');
+  var unitPrix = document.getElementById('unit-prix');
+  var lblNb = document.getElementById('lbl-nb');
+  var unitNb = document.getElementById('unit-nb');
+  if (type==='carcasse'||type==='vivant') {
+    if(champPoids)champPoids.style.display='flex';
+    if(champNb)champNb.style.display='flex';
+    if(lblPrix)lblPrix.textContent='Prix au kg';
+    if(unitPrix)unitPrix.textContent='F/kg';
+  } else if (type==='tetes_pattes') {
+    if(champPoids)champPoids.style.display='none';
+    if(champNb)champNb.style.display='flex';
+    if(lblPrix)lblPrix.textContent='Prix par lot';
+    if(unitPrix)unitPrix.textContent='F/lot';
+  } else if (type==='abats') {
+    if(champNb)champNb.style.display='none';
+    if(champPoids)champPoids.style.display='flex';
+    if(lblPrix)lblPrix.textContent='Prix au kg';
+  } else if (type==='fiente') {
+    if(champNb)champNb.style.display='flex';
+    if(champPoids)champPoids.style.display='none';
+    if(lblNb)lblNb.textContent='Nombre de sacs';
+    if(unitNb)unitNb.textContent='sacs';
+    if(lblPrix)lblPrix.textContent='Prix par sac';
+    if(unitPrix)unitPrix.textContent='F/sac';
+  }
+  calcVente();
+}
+
+function calcVente() {
+  var type = document.getElementById('abt-type') ? document.getElementById('abt-type').value : '';
+  var nb = parseFloat((document.getElementById('abt-nb')||{}).value) || 0;
+  var pds = parseFloat((document.getElementById('abt-poids')||{}).value) || 0;
+  var prix = parseFloat((document.getElementById('abt-prix')||{}).value) || 0;
+  var total = 0;
+  if (type==='carcasse'||type==='vivant'||type==='abats') total = Math.round(pds * prix);
+  else if (type==='tetes_pattes'||type==='fiente') total = Math.round(nb * prix);
+  var at = document.getElementById('abt-total');
+  if (at) at.textContent = total ? total.toLocaleString('fr-FR') + ' FCFA' : '- FCFA';
+}
+
+function nouvelleSession() {
+  var num = (S.sessionsAbattage || []).length + 1;
+  var date = prompt('Date de la session ' + num + ' :', new Date().toLocaleDateString('fr-FR'));
+  if (!date) return;
+  var nbAbt = parseInt(prompt('Nombre de poulets abattus :', '0') || '0');
+  if (!S.sessionsAbattage) S.sessionsAbattage = [];
+  S.sessionsAbattage.push({num:num, date:date, nbAbt:nbAbt, ts:Date.now()});
+  save(); renderSessions(); renderSessionSel();
+  showToast('Session ' + num + ' creee');
+}
+
+function renderSessions() {
+  var z = document.getElementById('sessions-list');
+  if (!z) return;
+  var sessions = S.sessionsAbattage || [];
+  if (!sessions.length) { z.innerHTML = '<div class="ab a-info">Aucune session — creer la premiere</div>'; return; }
+  var totalAbt = sessions.reduce(function(a,s) { return a+(s.nbAbt||0); }, 0);
+  z.innerHTML = '<div class="kpi-grid" style="margin-bottom:.75rem"><div class="kpi"><div class="kpi-lbl">Total abattus</div><div class="kpi-val ok">' + totalAbt + '</div></div><div class="kpi"><div class="kpi-lbl">Sessions</div><div class="kpi-val">' + sessions.length + '</div></div></div>'
+    + sessions.map(function(s) {
+      var ca = (S.ventes||[]).filter(function(v){return v.sessionNum===s.num;}).reduce(function(a,v){return a+v.total;},0);
+      return '<div class="bande-card"><div class="bande-head"><div><div class="bande-title">Session ' + s.num + '</div><div style="font-size:.75rem;color:var(--gray-t)">' + s.date + ' - ' + s.nbAbt + ' abattus</div></div><div style="text-align:right"><div style="font-size:1rem;font-weight:700;color:var(--green)">' + (ca?ca.toLocaleString('fr-FR')+' F':'-') + '</div></div></div></div>';
+    }).join('');
+}
+
+function renderSessionSel() {
+  var sel = document.getElementById('abt-session-sel');
+  if (!sel) return;
+  var sessions = S.sessionsAbattage || [];
+  if (!sessions.length) { sel.innerHTML = '<option value="">Creer une session</option>'; return; }
+  sel.innerHTML = sessions.map(function(s) { return '<option value="' + s.num + '">Session ' + s.num + ' - ' + s.date + '</option>'; }).join('');
+}
+
+function saveVente() {
+  var client = document.getElementById('abt-client') ? document.getElementById('abt-client').value : '';
+  var date = document.getElementById('abt-date') ? document.getElementById('abt-date').value : '';
+  var type = document.getElementById('abt-type') ? document.getElementById('abt-type').value : 'carcasse';
+  var sessionNum = parseInt((document.getElementById('abt-session-sel')||{}).value) || 1;
+  var nb = parseFloat((document.getElementById('abt-nb')||{}).value) || 0;
+  var pds = parseFloat((document.getElementById('abt-poids')||{}).value) || 0;
+  var prix = parseFloat((document.getElementById('abt-prix')||{}).value) || 0;
+  var dest = document.getElementById('abt-dest') ? document.getElementById('abt-dest').value : '';
+  if (!client) { showToast('Indique le nom du client !'); return; }
+  if (!prix) { showToast('Indique le prix !'); return; }
+  var total = 0;
+  if (type==='carcasse'||type==='vivant'||type==='abats') total = Math.round(pds * prix);
+  else total = Math.round(nb * prix);
+  S.ventes.push({client:client,date:date,type:type,nb:nb,pds:pds,prix:prix,total:total,dest:dest,sessionNum:sessionNum,user:currentUser});
+  save(); renderVentes();
+  showToast('Vente enregistree !');
+}
+
+function renderVentes() {
+  var tot = S.ventes.reduce(function(a,v) { return a+v.total; }, 0);
+  var ids = {'vte-total':tot?tot.toLocaleString('fr-FR'):'0','vte-sessions':(S.sessionsAbattage||[]).length,'vte-carc':S.ventes.filter(function(v){return v.type==='carcasse';}).length,'vte-viv':S.ventes.filter(function(v){return v.type==='vivant';}).length};
+  Object.keys(ids).forEach(function(id) { var el=document.getElementById(id); if(el)el.textContent=ids[id]; });
+  var z = document.getElementById('vente-list');
+  if (!z) return;
+  if (!S.ventes.length) { z.innerHTML = '<div style="color:var(--gray-t);font-size:.82rem;text-align:center;padding:1rem">Aucune vente</div>'; return; }
+  z.innerHTML = [].concat(S.ventes).reverse().map(function(v) {
+    return '<div class="bande-card"><div class="bande-head"><div><div class="bande-title">' + v.client + '</div><div style="font-size:.72rem;color:var(--gray-t)">' + v.date + '</div></div><div style="font-size:1.1rem;font-weight:700;color:var(--green)">' + v.total.toLocaleString('fr-FR') + ' F</div></div></div>';
+  }).join('');
+}
+
+// ══ COMPTABILITÉ ══
+function saveOp() {
+  var type = document.getElementById('op-type') ? document.getElementById('op-type').value : 'depense';
+  var cat = document.getElementById('op-cat') ? document.getElementById('op-cat').value : '';
+  var date = document.getElementById('op-date') ? document.getElementById('op-date').value : '';
+  var montant = parseFloat((document.getElementById('op-montant')||{}).value) || 0;
+  var ref = document.getElementById('op-ref') ? document.getElementById('op-ref').value : '';
+  var desc = document.getElementById('op-desc') ? document.getElementById('op-desc').value : '';
+  if (!montant) { showToast('Saisis un montant !'); return; }
+  var hasT = document.getElementById('chk-transport') && document.getElementById('chk-transport').classList.contains('done');
+  var montantT = hasT ? (parseFloat((document.getElementById('op-transport')||{}).value)||0) : 0;
+  S.operations.push({type:type,cat:cat,date:date,montant:montant,ref:ref,desc:desc,ts:Date.now()});
+  if (hasT && montantT) S.operations.push({type:'depense',cat:'Transport',date:date,montant:montantT,ref:ref,desc:'Transport - ' + cat,ts:Date.now()});
+  save(); showToast('Operation enregistree !');
+  ['op-montant','op-ref','op-desc'].forEach(function(id) { var el=document.getElementById(id); if(el)el.value=''; });
+  renderCompta();
+}
+
+function renderCompta() {
+  var deps = S.operations.filter(function(o) { return o.type==='depense'; });
+  var recs = S.operations.filter(function(o) { return o.type==='recette'; });
+  var totDep = deps.reduce(function(a,o) { return a+o.montant; }, 0);
+  var totRec = recs.reduce(function(a,o) { return a+o.montant; }, 0);
+  var net = totRec - totDep;
+  var setEl = function(id, val) { var el=document.getElementById(id); if(el)el.textContent=val; };
+  setEl('bilan-recettes', totRec.toLocaleString('fr-FR') + ' FCFA');
+  setEl('bilan-depenses', totDep.toLocaleString('fr-FR') + ' FCFA');
+  setEl('bilan-net', net.toLocaleString('fr-FR') + ' FCFA');
+  var en = document.getElementById('bilan-net');
+  if (en) en.className = 'res-val ' + (net>=0?'ok':'danger');
+  var cats = {};
+  S.operations.forEach(function(o) {
+    if (!cats[o.cat]) cats[o.cat] = {dep:0,rec:0};
+    if (o.type==='depense') cats[o.cat].dep += o.montant;
+    else cats[o.cat].rec += o.montant;
+  });
+  var bc = document.getElementById('bilan-cats');
+  if (bc) bc.innerHTML = Object.keys(cats).map(function(cat) {
+    var v = cats[cat];
+    return '<div class="res-row"><div><div class="res-lbl">' + cat + '</div></div><div style="text-align:right">'
+      + (v.rec?'<div style="font-size:.78rem;color:var(--green)">+'+v.rec.toLocaleString('fr-FR')+'</div>':'')
+      + (v.dep?'<div style="font-size:.78rem;color:var(--red)">-'+v.dep.toLocaleString('fr-FR')+'</div>':'')
+      + '</div></div>';
+  }).join('');
+  var ol = document.getElementById('op-list');
+  if (!ol) return;
+  if (!S.operations.length) { ol.innerHTML = '<div style="color:var(--gray-t);font-size:.82rem;text-align:center;padding:1rem">Aucune operation</div>'; return; }
+  ol.innerHTML = [].concat(S.operations).reverse().map(function(o) {
+    return '<div class="bande-card"><div class="bande-head"><div><div style="font-size:.85rem;font-weight:700">' + o.cat + (o.bandeSerie?' <span style="background:var(--primary);color:var(--gold);border-radius:3px;padding:1px 5px;font-size:.68rem">' + o.bandeSerie + '</span>':'') + '</div><div style="font-size:.72rem;color:var(--gray-t)">' + o.date + (o.desc?' &bull; '+o.desc:'') + '</div></div><div style="font-size:1.05rem;font-weight:700;color:' + (o.type==='recette'?'var(--green)':'var(--red)') + '">' + (o.type==='depense'?'-':'+') + o.montant.toLocaleString('fr-FR') + ' F</div></div></div>';
+  }).join('');
+}
+
+// ══ BANDES ══
+function creerBande() {
+  if (currentUser !== 'gestionnaire') { showToast('Reserve au gestionnaire !'); return; }
+  var nom = document.getElementById('new-bande-nom') ? document.getElementById('new-bande-nom').value : '';
+  var date = document.getElementById('new-bande-date') ? document.getElementById('new-bande-date').value : '';
+  var eff = parseInt((document.getElementById('new-bande-eff')||{}).value) || 1100;
+  var souche = document.getElementById('new-bande-souche') ? document.getElementById('new-bande-souche').value : 'cobb500';
+  var lotA = parseInt((document.getElementById('new-bande-lota')||{}).value) || 50;
+  var prixP = parseFloat((document.getElementById('new-bande-prix-p')||{}).value) || 750;
+  if (!nom || !date) { showToast('Nom et date obligatoires !'); return; }
+  // Numéro de série automatique basé sur le nombre de bandes existantes
+  var numSerie = S.bandes.length + 1;
+  var codeSerie = 'B' + String(numSerie).padStart(3,'0') + '-' + FARM.toUpperCase().slice(0,3) + '-' + new Date().getFullYear();
+  var nouvBande = {
+    id: codeSerie,
+    nom: nom,
+    numSerie: codeSerie,
+    dateDebut: date,
+    effectif: eff,
+    souche: souche,
+    lotA: lotA,
+    prixPoussin: prixP,
+    statut: 'active',
+    createdAt: Date.now()
+  };
+  // Ajouter à la liste sans supprimer les autres bandes
+  S.bandes.push(nouvBande);
+  S.bandeCourante = codeSerie;
+  // Réinitialiser les données de saisie courante (mais garder historique dans operations/ventes avec bande liée)
+  S.saisies = [];
+  S.protocoles = [];
+  S.sessionsAbattage = [];
+  S.stockAlim = {total:0, consomme:0, receptions:[], consoHist:[]};
+  save();
+  updateJour();
+  renderBandes();
+  renderAccueil();
+  renderBandeSel();
+  // Vider le formulaire
+  ['new-bande-nom','new-bande-date'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  swAccueil('bande', document.querySelectorAll('#page-accueil .tab')[0]);
+  showToast('Bande ' + codeSerie + ' creee et active !');
+}
+
+function renderBandes() {
+  var ba = document.getElementById('bande-active-detail');
+  var actives = getBandesActives();
+  if (ba) {
+    if (!actives.length) {
+      ba.innerHTML = '<div class="ab a-info">Aucune bande active — creer une bande depuis l\'accueil</div>';
+    } else {
+      ba.innerHTML = actives.map(function(b) {
+        var j = Math.max(1,Math.floor((new Date()-new Date(b.dateDebut))/86400000)+1);
+        var mortalite = (S.saisies||[]).filter(function(s){return s.type==='matin'&&s.bande===b.id;}).reduce(function(a,s){return a+(s.morts||0);},0);
+        var vivants = b.effectif - mortalite;
+        var pct = (mortalite/b.effectif*100).toFixed(1);
+        var depBande = (S.operations||[]).filter(function(o){return o.bandeSerie===b.id&&o.type==='depense';}).reduce(function(a,o){return a+o.montant;},0);
+        var recBande = (S.ventes||[]).filter(function(v){return v.bande===b.id;}).reduce(function(a,v){return a+v.total;},0);
+        var isCourante = b.id === S.bandeCourante;
+        return '<div class="bande-card" style="' + (isCourante?'border:2px solid var(--gold)':'') + '">'
+          + '<div class="bande-head"><div><div class="bande-title">' + b.nom + '</div>'
+          + '<span style="background:var(--primary);color:var(--gold);border-radius:4px;padding:2px 8px;font-size:.72rem;font-weight:700">' + b.numSerie + '</span>'
+          + (isCourante?'<span class="badge badge-g" style="margin-left:6px">Active</span>':'')
+          + '</div><span class="badge badge-g">J' + j + '</span></div>'
+          + '<div class="kpi-grid" style="margin-top:.5rem">'
+          + '<div class="kpi"><div class="kpi-lbl">Effectif</div><div class="kpi-val">' + b.effectif + '</div></div>'
+          + '<div class="kpi"><div class="kpi-lbl">Vivants</div><div class="kpi-val ok">' + vivants + '</div></div>'
+          + '<div class="kpi"><div class="kpi-lbl">Mortalite</div><div class="kpi-val ' + (parseFloat(pct)>5?'danger':'ok') + '">' + pct + '%</div></div>'
+          + '<div class="kpi"><div class="kpi-lbl">Depenses</div><div class="kpi-val danger" style="font-size:.9rem">' + (depBande?(depBande/1000).toFixed(0)+'k':'-') + '</div></div>'
+          + '</div>'
+          + '<div style="margin-top:.5rem;font-size:.75rem;color:var(--gray-t)">Debut : ' + new Date(b.dateDebut).toLocaleDateString('fr-FR') + ' &bull; ' + (b.souche||'') + '</div>'
+          + '</div>';
+      }).join('');
+    }
+  }
+  var al = document.getElementById('bandes-list');
+  if (!al) return;
+  var cloturees = S.bandes.filter(function(b){return b.statut==='cloturee';});
+  if (!cloturees.length) { al.innerHTML = '<div style="color:var(--gray-t);font-size:.82rem;text-align:center;padding:1rem">Aucune bande cloturee</div>'; return; }
+  al.innerHTML = cloturees.reverse().map(function(b) {
+    var depBande = (S.operations||[]).filter(function(o){return o.bandeSerie===b.id&&o.type==='depense';}).reduce(function(a,o){return a+o.montant;},0);
+    return '<div class="bande-card"><div class="bande-head"><div><div class="bande-title">' + b.nom + '</div>'
+      + '<span style="background:var(--primary);color:var(--gold);border-radius:4px;padding:2px 6px;font-size:.68rem">' + b.numSerie + '</span>'
+      + '</div><span class="badge badge-r">Cloturee</span></div>'
+      + '<div style="font-size:.75rem;color:var(--gray-t);margin-top:4px">' + new Date(b.dateDebut).toLocaleDateString('fr-FR') + ' - ' + (b.dateFin||'-') + '</div>'
+      + (depBande?'<div style="font-size:.78rem;color:var(--red);margin-top:2px">Depenses : ' + depBande.toLocaleString('fr-FR') + ' F</div>':'')
+      + '</div>';
+  }).join('');
+}
+
+// ══ COUTS ══
+function loadPrix() {
+  var p = S.prix || {};
+  var f = {mais:'prix-mais',soja:'prix-soja',conc:'prix-conc',medic:'prix-medic',sal:'prix-sal',elec:'prix-elec',abt:'prix-abt',vte:'prix-vte'};
+  Object.keys(f).forEach(function(k) { var el=document.getElementById(f[k]); if(el&&p[k]!=null)el.value=p[k]; });
+}
+
+function savePrix() {
+  S.prix = {
+    mais:+document.getElementById('prix-mais').value||150,
+    soja:+document.getElementById('prix-soja').value||360,
+    conc:+document.getElementById('prix-conc').value||900,
+    medic:+document.getElementById('prix-medic').value||80000,
+    sal:+document.getElementById('prix-sal').value||60000,
+    elec:+document.getElementById('prix-elec').value||20000,
+    abt:+document.getElementById('prix-abt').value||100,
+    vte:+document.getElementById('prix-vte').value||2400
+  };
+  save(); showToast('Prix enregistres !');
+}
+
+function calcCout() {
+  var j = getCurJour();
+  var p = S.prix || {};
+  var effInit = S.bande ? S.bande.effectif : 1100;
+  var morts = S.mortaliteCumul || 0;
+  var vivants = effInit - morts;
+  var alim = S.alimCumul || 0;
+  var pVif = S.dernierPoids || Math.round(j * 48);
+  var pm, ps, pc;
+  if (j<=10){pm=0.48;ps=0.24;pc=0.28;}else if(j<=28){pm=0.53;ps=0.21;pc=0.26;}else{pm=0.59;ps=0.17;pc=0.24;}
+  var prixAlim = pm*(p.mais||150)+ps*(p.soja||360)+pc*(p.conc||900);
+  var tot = effInit*(S.bande?S.bande.prixPoussin:750)+Math.round((alim||j*effInit*0.08)*prixAlim)+Math.round((p.medic||80000)*j/45)+Math.round((p.sal||60000)*j/45)+Math.round((p.elec||20000)*j/45);
+  var crS = vivants>0 ? Math.round(tot/vivants) : 0;
+  var carc = Math.round(pVif*0.75)/1000;
+  var crKg = carc>0 ? Math.round(crS/carc) : 0;
+  var rev = Math.round(carc*(p.vte||2400))*vivants;
+  var marge = rev-tot-(p.abt||100)*vivants;
+  var taux = rev>0?(marge/rev*100).toFixed(1):0;
+  var cj = document.getElementById('cr-jour'); if(cj)cj.textContent=j;
+  var setEl=function(id,val){var el=document.getElementById(id);if(el)el.textContent=val;};
+  setEl('cr-total',Math.round(tot).toLocaleString('fr-FR')+' F');
+  setEl('cr-sujet',crS.toLocaleString('fr-FR')+' F');
+  setEl('cr-kg',crKg.toLocaleString('fr-FR')+' F/kg');
+  setEl('cr-marge',Math.round(marge).toLocaleString('fr-FR')+' F');
+  setEl('cr-taux',taux+'%');
+}
+
+// ══ MALADIES ══
+function togMal(id) {
+  var el = document.getElementById('maladie-' + id);
+  if (el) el.classList.toggle('open');
+}
+
+function renderSaisonMal() {
+  var j = getCurJour();
+  var z = document.getElementById('saison-mal');
+  if (!z) return;
+  var msg = j<=15 ? 'Saison seche chaude - Risque chaleur' : j<=28 ? 'Transition - HR monte, surveiller' : 'Saison pluies - Risque coccidiose eleve';
+  z.innerHTML = '<div class="ab a-warn"><span class="ab-icon">!</span>' + msg + '</div>';
+}
+
+
+
+// ══ GESTION MULTI-BANDES ══
+
+function renderBandeSel() {
+  var sel = document.getElementById('bande-sel');
+  if (!sel) return;
+  var actives = getBandesActives();
+  if (!actives.length) {
+    sel.innerHTML = '<option value="">Aucune bande active</option>';
+    return;
+  }
+  sel.innerHTML = actives.map(function(b) {
+    return '<option value="' + b.id + '"' + (b.id === S.bandeCourante ? ' selected' : '') + '>'
+      + b.numSerie + ' — ' + b.nom + ' (J' + Math.max(1,Math.floor((new Date()-new Date(b.dateDebut))/86400000)+1) + ')'
+      + '</option>';
+  }).join('');
+  // Mettre à jour label dépenses
+  var bc = getBandeCourante();
+  var lbl = document.getElementById('dep-bande-label');
+  if (lbl) lbl.textContent = bc ? bc.numSerie + ' — ' + bc.nom : 'sélectionner une bande';
+  // Bouton clôturer visible pour gestionnaire
+  var btn = document.getElementById('btn-cloturer');
+  if (btn) btn.style.display = currentUser === 'gestionnaire' && actives.length > 0 ? 'block' : 'none';
+}
+
+function changerBande(id) {
+  S.bandeCourante = id;
+  save();
+  renderAccueil();
+  renderBandeSel();
+  var bc = getBandeCourante();
+  if (bc) showToast('Bande active : ' + bc.numSerie);
+}
+
+function cloturerBande() {
+  var bc = getBandeCourante();
+  if (!bc) return;
+  if (!confirm('Clôturer la bande ' + bc.numSerie + ' ? Elle passera en archives.')) return;
+  var idx = S.bandes.findIndex(function(b) { return b.id === bc.id; });
+  if (idx >= 0) {
+    S.bandes[idx].statut = 'cloturee';
+    S.bandes[idx].dateFin = new Date().toLocaleDateString('fr-FR');
+  }
+  // Passer à la prochaine bande active
+  var actives = getBandesActives();
+  S.bandeCourante = actives.length ? actives[0].id : null;
+  save(); renderAccueil(); renderBandeSel(); renderBandes();
+  showToast('Bande ' + bc.numSerie + ' cloturee');
+}
+
+// ══ ACCUEIL ONGLETS ══
+function swAccueil(id, btn) {
+  if (id === 'new' && currentUser !== 'gestionnaire') {
+    showToast('Creation de bande reservee au gestionnaire');
+    return;
+  }
+  var bande = document.getElementById('acc-bande');
+  var newb = document.getElementById('acc-new');
+  if (bande) bande.style.display = id === 'bande' ? 'block' : 'none';
+  if (newb) newb.style.display = id === 'new' ? 'block' : 'none';
+  document.querySelectorAll('#page-accueil .tab').forEach(function(t) { t.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+}
+
+// ══ DÉPENSES BANDE ══
+var depLines = [];
+
+function addDepLine() {
+  depLines.push({libelle:'', unite:'', prixUnit:0, qte:0, montant:0});
+  renderDepTable();
+}
+
+function renderDepTable() {
+  var tbody = document.getElementById('dep-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = depLines.map(function(dep, i) {
+    return '<tr>'
+      + '<td><input type="text" value="' + (dep.libelle||'') + '" placeholder="Ex: Maïs" oninput="updateDep(' + i + ',\'libelle\',this.value)" style="min-width:90px"></td>'
+      + '<td><input type="text" value="' + (dep.unite||'') + '" placeholder="kg/sac" oninput="updateDep(' + i + ',\'unite\',this.value)" style="width:60px"></td>'
+      + '<td><input type="number" value="' + (dep.prixUnit||'') + '" placeholder="0" oninput="updateDep(' + i + ',\'prixUnit\',+this.value)" style="width:70px"></td>'
+      + '<td><input type="number" value="' + (dep.qte||'') + '" placeholder="0" oninput="updateDep(' + i + ',\'qte\',+this.value)" style="width:55px"></td>'
+      + '<td class="dep-montant">' + ((dep.prixUnit||0)*(dep.qte||0)).toLocaleString('fr-FR') + ' F</td>'
+      + '<td><button onclick="deleteDep(' + i + ')" style="background:var(--red);color:white;border:none;border-radius:4px;padding:2px 8px;font-size:.8rem;cursor:pointer">X</button></td>'
+      + '</tr>';
+  }).join('');
+  updateDepTotal();
+}
+
+function updateDep(idx, field, val) {
+  depLines[idx][field] = val;
+  depLines[idx].montant = (depLines[idx].prixUnit||0) * (depLines[idx].qte||0);
+  renderDepTable();
+}
+
+function deleteDep(idx) {
+  depLines.splice(idx, 1);
+  renderDepTable();
+}
+
+function updateDepTotal() {
+  var total = depLines.reduce(function(a, d) { return a + (d.prixUnit||0)*(d.qte||0); }, 0);
+  var el = document.getElementById('dep-total');
+  if (el) el.textContent = total.toLocaleString('fr-FR') + ' F';
+}
+
+function saveDepenses() {
+  if (currentUser !== 'gestionnaire') { showToast('Reserve au gestionnaire !'); return; }
+  var bc_dep = getBandeCourante();
+  if (!bc_dep) { showToast('Selectionner une bande active !'); return; }
+  if (!depLines.length) { showToast('Ajoute au moins une ligne !'); return; }
+  var today = new Date().toISOString().split('T')[0];
+  var saved = 0;
+  depLines.forEach(function(dep) {
+    if (!dep.libelle || !dep.prixUnit || !dep.qte) return;
+    var montant = dep.prixUnit * dep.qte;
+    S.operations.push({
+      type: 'depense',
+      cat: dep.libelle,
+      date: today,
+      montant: montant,
+      bande: bc_dep.nom,
+      bandeSerie: bc_dep.numSerie || '',
+      ref: bc_dep.numSerie || ('BANDE-' + bc_dep.nom),
+      desc: dep.qte + ' ' + (dep.unite||'') + ' x ' + dep.prixUnit.toLocaleString('fr-FR') + ' F',
+      ts: Date.now()
+    });
+    saved++;
+  });
+  save();
+  showToast(saved + ' depense(s) liee(s) a ' + bc_dep.nom + ' (' + (bc_dep.numSerie||'') + ')');
+  depLines = [];
+  renderDepTable();
+  renderCompta();
+}
+
+// Charger dépenses sauvegardées au démarrage
+function loadDepenses() {
+  depLines = S.depLinesBrouillon || [];
+  if (depLines.length) renderDepTable();
+}
+// ══ TRANSPORT TOGGLE ══
+document.addEventListener('click', function(e) {
+  var chk = document.getElementById('chk-transport');
+  if (chk && chk.contains(e.target)) {
+    setTimeout(function() {
+      var isOn = chk.classList.contains('done');
+      var row = document.getElementById('transport-montant-row');
+      if (row) row.style.display = isOn ? 'flex' : 'none';
+    }, 50);
+  }
+});
+
+</script>
+</body>
+</html>
