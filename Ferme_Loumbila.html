@@ -88,8 +88,9 @@ body{font-family:var(--font);background:#F0F2F5;color:#222;min-height:100vh;over
 .prog-bg{height:10px;background:var(--gray);border-radius:5px;overflow:hidden;margin:.5rem 0}
 .prog-fill{height:10px;border-radius:5px;background:var(--primary);transition:width .4s}
 .tab-bar{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
-.tab{padding:5px 12px;border-radius:20px;font-size:.78rem;cursor:pointer;border:1px solid var(--border);background:var(--white);color:var(--gray-t);font-weight:500}
-.tab.on{background:var(--primary);color:white;border-color:transparent}
+.tab{padding:8px 16px;border-radius:8px;font-size:.82rem;cursor:pointer;border:2px solid var(--border);background:var(--white);color:var(--gray-t);font-weight:600;transition:all .15s}
+.tab.on{background:var(--primary);color:var(--gold);border-color:var(--primary);font-weight:700;box-shadow:0 2px 8px rgba(27,58,45,.3)}
+.tab:active{opacity:.8}
 .tbl{width:100%;border-collapse:collapse;font-size:.82rem}
 .tbl th{background:var(--primary);color:var(--gold);padding:7px 10px;text-align:left;font-weight:600;font-size:.78rem}
 .tbl td{padding:7px 10px;border-bottom:1px solid var(--gray);vertical-align:top}
@@ -143,6 +144,18 @@ body{font-family:var(--font);background:#F0F2F5;color:#222;min-height:100vh;over
 .loading-msg{color:#C9A84C;font-size:.95rem;font-weight:600;font-family:'Segoe UI',system-ui,sans-serif}
 @keyframes spin{to{transform:rotate(360deg)}}
 .btn-loading{opacity:.6;pointer-events:none}
+
+.dep-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:.5rem}
+.dep-table th{background:var(--primary);color:var(--gold);padding:8px 6px;text-align:left;font-weight:600;font-size:.75rem;white-space:nowrap}
+.dep-table td{padding:6px;border-bottom:1px solid var(--border);vertical-align:middle}
+.dep-table tr:last-child td{border-bottom:none}
+.dep-table input{width:100%;border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:.82rem;background:var(--gray)}
+.dep-table input:focus{outline:none;border-color:var(--primary)}
+.dep-montant{font-weight:700;color:var(--primary);text-align:right;white-space:nowrap}
+.dep-total-row{background:var(--primary);color:var(--gold);font-weight:700}
+.dep-total-row td{padding:8px 6px}
+.btn-add-dep{background:var(--green);color:white;border:none;border-radius:6px;padding:4px 10px;font-size:.78rem;cursor:pointer;font-weight:600}
+.btn-del-dep{background:var(--red);color:white;border:none;border-radius:4px;padding:2px 6px;font-size:.75rem;cursor:pointer}
 </style>
 </head>
 <body>
@@ -191,46 +204,105 @@ body{font-family:var(--font);background:#F0F2F5;color:#222;min-height:100vh;over
 
   <!-- PAGE ACCUEIL -->
   <div class="page active" id="page-accueil">
-    <div id="alertes-zone"></div>
-    <div id="proto-alertes-zone"></div>
-    <div class="card">
-      <div class="card-title">📊 Paramètres du moment</div>
-      <div class="kpi-grid">
-        <div class="kpi"><div class="kpi-lbl">🌡️ Température</div><div class="kpi-val" id="kpi-temp">—</div><div class="kpi-sub" id="kpi-temp-s">Non saisi</div></div>
-        <div class="kpi"><div class="kpi-lbl">💧 Humidité</div><div class="kpi-val" id="kpi-hr">—</div><div class="kpi-sub" id="kpi-hr-s">Non saisi</div></div>
-        <div class="kpi"><div class="kpi-lbl">💀 Morts aujourd'hui</div><div class="kpi-val" id="kpi-morts">—</div><div class="kpi-sub" id="kpi-morts-s">—</div></div>
-        <div class="kpi"><div class="kpi-lbl">🐥 Vivants</div><div class="kpi-val" id="kpi-vivants">—</div><div class="kpi-sub" id="kpi-vivants-s">sujets</div></div>
+    <!-- ONGLETS ACCUEIL -->
+    <div class="tab-bar" style="margin-bottom:1rem">
+      <div class="tab on" onclick="swAccueil('bande',this)">📋 Bande en cours</div>
+      <div class="tab" id="tab-acc-new" onclick="swAccueil('new',this)">➕ Nouvelle bande</div>
+    </div>
+
+    <!-- BANDE EN COURS -->
+    <div id="acc-bande">
+      <!-- Sélecteur bande active -->
+      <div class="card" style="padding:.75rem;margin-bottom:.75rem">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:.82rem;font-weight:600;color:var(--primary);white-space:nowrap">Bande active :</span>
+          <select class="form-sel" id="bande-sel" onchange="changerBande(this.value)" style="flex:1;padding:.5rem;font-size:.85rem;font-weight:600"></select>
+          <button onclick="cloturerBande()" style="background:var(--red);color:white;border:none;border-radius:6px;padding:.4rem .75rem;font-size:.75rem;cursor:pointer;white-space:nowrap;display:none" id="btn-cloturer">Clôturer</button>
+        </div>
+      </div>
+      <div id="alertes-zone"></div>
+      <div id="proto-alertes-zone"></div>
+      <div class="card">
+        <div class="card-title">📊 Paramètres du moment</div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-lbl">🌡️ Température</div><div class="kpi-val" id="kpi-temp">—</div><div class="kpi-sub" id="kpi-temp-s">Non saisi</div></div>
+          <div class="kpi"><div class="kpi-lbl">💧 Humidité</div><div class="kpi-val" id="kpi-hr">—</div><div class="kpi-sub" id="kpi-hr-s">Non saisi</div></div>
+          <div class="kpi"><div class="kpi-lbl">💀 Morts aujourd'hui</div><div class="kpi-val" id="kpi-morts">—</div><div class="kpi-sub" id="kpi-morts-s">—</div></div>
+          <div class="kpi"><div class="kpi-lbl">🐥 Vivants</div><div class="kpi-val" id="kpi-vivants">—</div><div class="kpi-sub" id="kpi-vivants-s">sujets</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📅 Bande en cours</div>
+        <div id="bande-info-accueil"><div style="color:var(--gray-t);font-size:.85rem;text-align:center;padding:.5rem">Aucune bande active</div></div>
+      </div>
+      <div class="card" id="card-cout-live" style="display:none">
+        <div class="card-title">💰 Coût de revient — temps réel</div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-lbl">🐔 Vivants</div><div class="kpi-val ok" id="live-vivants">—</div><div class="kpi-sub" id="live-vivants-s">sujets</div></div>
+          <div class="kpi"><div class="kpi-lbl">💀 Morts cumulés</div><div class="kpi-val danger" id="live-morts-cum">—</div><div class="kpi-sub" id="live-mort-pct">—%</div></div>
+          <div class="kpi"><div class="kpi-lbl">🌾 Aliment cumulé</div><div class="kpi-val" id="live-alim">—</div><div class="kpi-sub">kg</div></div>
+          <div class="kpi"><div class="kpi-lbl">📦 Coût / sujet</div><div class="kpi-val" id="live-cr-sujet">—</div><div class="kpi-sub">FCFA</div></div>
+          <div class="kpi"><div class="kpi-lbl">🥩 Coût / kg carc.</div><div class="kpi-val" id="live-cr-kg">—</div><div class="kpi-sub" id="live-cr-kg-s">—</div></div>
+          <div class="kpi"><div class="kpi-lbl">💰 Marge estimée</div><div class="kpi-val" id="live-marge">—</div><div class="kpi-sub" id="live-marge-s">FCFA</div></div>
+        </div>
+        <div id="live-alerte"></div>
+      </div>
+
+      <!-- DÉPENSES BANDE — Gestionnaire uniquement -->
+      <div class="card admin-only" id="card-depenses-bande" style="display:none">
+        <div class="card-title">💸 Dépenses — <span id="dep-bande-label" style="color:var(--gold)">sélectionner une bande</span></div>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+          <table class="dep-table">
+            <thead>
+              <tr>
+                <th>Libellé</th>
+                <th>Unité</th>
+                <th>P.Unit (F)</th>
+                <th>Qté</th>
+                <th>Montant</th>
+                <th>Sup</th>
+              </tr>
+            </thead>
+            <tbody id="dep-tbody"></tbody>
+            <tfoot>
+              <tr class="dep-total-row">
+                <td colspan="4" style="padding:8px 6px">TOTAL DÉPENSES</td>
+                <td style="padding:8px 6px;font-weight:700;color:var(--gold)" id="dep-total">0 F</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <button onclick="addDepLine()" style="margin-top:.75rem;background:var(--green);color:white;border:none;border-radius:6px;padding:8px 16px;font-size:.85rem;cursor:pointer;font-weight:600">+ Ajouter une ligne</button>
+        <button class="btn-p" onclick="saveDepenses()" style="margin-top:.5rem">💾 Enregistrer les dépenses</button>
+      </div>
+
+      <button class="btn-p" onclick="goPage('saisie')">✏️ Faire la saisie du matin</button>
+    </div>
+
+    <!-- NOUVELLE BANDE — Gestionnaire uniquement -->
+    <div id="acc-new" style="display:none">
+      <div class="card">
+        <div class="card-title">➕ Créer une nouvelle bande</div>
+        <div class="ab a-warn"><span class="ab-icon">⚠️</span>La création d'une bande clôture la bande en cours</div>
+        <div class="form-group"><label class="form-lbl">Nom de la bande</label><input class="form-inp" type="text" id="new-bande-nom" placeholder="Ex: Bande Juin 2026"></div>
+        <div class="form-group"><label class="form-lbl">Date de mise en place</label><input class="form-inp" type="date" id="new-bande-date"></div>
+        <div class="form-group"><label class="form-lbl">Effectif initial</label><input class="form-inp" type="number" id="new-bande-eff" value="1100"></div>
+        <div class="form-group"><label class="form-lbl">Souche</label>
+          <select class="form-sel" id="new-bande-souche" style="width:100%">
+            <option value="cobb500">Cobb 500</option>
+            <option value="ross308">Ross 308</option>
+            <option value="mixte">Mixte Cobb 500 / Ross 308</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-lbl">% Lot A (abattage J35)</label><input class="form-inp" type="number" id="new-bande-lota" value="50"></div>
+        <div class="form-group"><label class="form-lbl">Prix poussin (FCFA)</label><input class="form-inp" type="number" id="new-bande-prix-p" value="750"></div>
+        <button class="btn-p" onclick="creerBande()">🐥 Créer la bande</button>
       </div>
     </div>
-    <div class="card">
-      <div class="card-title">📅 Bande en cours</div>
-      <div id="bande-info-accueil"><div style="color:var(--gray-t);font-size:.85rem;text-align:center;padding:.5rem">Aucune bande active — créer une bande dans Paramètres</div></div>
-    </div>
-    <div class="card admin-only" id="kpi-semaine-card" style="display:none">
-      <div class="card-title">⚖️ Dernière pesée</div>
-      <div class="kpi-grid">
-        <div class="kpi"><div class="kpi-lbl">Poids moyen</div><div class="kpi-val" id="kpi-poids">—</div><div class="kpi-sub">g</div></div>
-        <div class="kpi"><div class="kpi-lbl">GMQ</div><div class="kpi-val" id="kpi-gmq">—</div><div class="kpi-sub">g/jour</div></div>
-        <div class="kpi"><div class="kpi-lbl">IC</div><div class="kpi-val" id="kpi-ic">—</div><div class="kpi-sub">cible &lt;2.0</div></div>
-        <div class="kpi"><div class="kpi-lbl">Mortalité</div><div class="kpi-val" id="kpi-mort-pct">—</div><div class="kpi-sub">%</div></div>
-      </div>
-    </div>
-    <div class="card" id="card-cout-live">
-      <div class="card-title">💰 Coût de revient — en temps réel</div>
-      <div class="kpi-grid">
-        <div class="kpi"><div class="kpi-lbl">🐔 Vivants</div><div class="kpi-val ok" id="live-vivants">—</div><div class="kpi-sub" id="live-vivants-s">sujets</div></div>
-        <div class="kpi"><div class="kpi-lbl">💀 Morts cumulés</div><div class="kpi-val danger" id="live-morts-cum">—</div><div class="kpi-sub" id="live-mort-pct">—%</div></div>
-        <div class="kpi"><div class="kpi-lbl">🌾 Aliment cumulé</div><div class="kpi-val" id="live-alim">—</div><div class="kpi-sub">kg consommés</div></div>
-        <div class="kpi"><div class="kpi-lbl">📦 Coût / sujet</div><div class="kpi-val" id="live-cr-sujet">—</div><div class="kpi-sub">FCFA</div></div>
-        <div class="kpi"><div class="kpi-lbl">🥩 Coût / kg carcasse</div><div class="kpi-val" id="live-cr-kg">—</div><div class="kpi-sub" id="live-cr-kg-s">cible &lt;1 800</div></div>
-        <div class="kpi"><div class="kpi-lbl">💰 Marge estimée</div><div class="kpi-val" id="live-marge">—</div><div class="kpi-sub" id="live-marge-s">FCFA</div></div>
-      </div>
-      <div id="live-alerte"></div>
-    </div>
-    <button class="btn-p" onclick="goPage('saisie')">✏️ Faire la saisie du matin</button>
   </div>
 
-  <!-- PAGE SAISIE -->
+    <!-- PAGE SAISIE -->
   <div class="page" id="page-saisie">
     <div class="tab-bar">
       <div class="tab on" onclick="swTab('matin',this)">🌅 Matin</div>
@@ -719,9 +791,10 @@ body{font-family:var(--font);background:#F0F2F5;color:#222;min-height:100vh;over
   <nav class="bot-nav">
     <div class="nav-it active" onclick="goPage('accueil')"><span class="nav-ic">🏠</span>Accueil</div>
     <div class="nav-it" onclick="goPage('saisie')"><span class="nav-ic">✏️</span>Saisie</div>
+    <div class="nav-it admin-only" id="nav-compta-btn" style="display:none" onclick="goPage('compta')"><span class="nav-ic">📒</span>Compta</div>
+    <div class="nav-it admin-only" id="nav-ventes-btn" style="display:none" onclick="goPage('abattage')"><span class="nav-ic">🔪</span>Ventes</div>
     <div class="nav-it" onclick="goPage('proto')"><span class="nav-ic">💉</span>Protocole</div>
     <div class="nav-it" onclick="goPage('stock')"><span class="nav-ic">📦</span>Stock</div>
-    <div class="nav-it" onclick="goPage('abattage')"><span class="nav-ic">🔪</span>Ventes</div>
     <div class="nav-it admin-only" onclick="goPage('compta')"><span class="nav-ic">📒</span>Compta</div>
     <div class="nav-it admin-only" onclick="goPage('bandes')"><span class="nav-ic">📋</span>Bandes</div>
     <div class="nav-it admin-only" onclick="goPage('couts')"><span class="nav-ic">💰</span>Coûts</div>
@@ -745,8 +818,9 @@ var currentUser = null;
 // ══ ÉTAT LOCAL ══
 var S = {};
 try { var _d = localStorage.getItem('kq_loumbila'); if (_d) S = JSON.parse(_d); } catch(e) {}
-if (!S.bande) S.bande = null;
-if (!S.bandesArchives) S.bandesArchives = [];
+// Bandes multiples simultanées
+if (!S.bandes) S.bandes = [];           // toutes les bandes (actives + archivées)
+if (!S.bandeCourante) S.bandeCourante = null; // ID bande sélectionnée dans l'UI
 if (!S.saisies) S.saisies = [];
 if (!S.protocoles) S.protocoles = [];
 if (!S.litiere) S.litiere = [];
@@ -755,10 +829,25 @@ if (!S.stockAlim) S.stockAlim = {total:0, consomme:0, receptions:[], consoHist:[
 if (!S.ventes) S.ventes = [];
 if (!S.operations) S.operations = [];
 if (!S.sessionsAbattage) S.sessionsAbattage = [];
-if (!S.mortaliteCumul) S.mortaliteCumul = 0;
-if (!S.alimCumul) S.alimCumul = 0;
 if (!S.prix) S.prix = {mais:150, soja:360, conc:900, medic:80000, sal:60000, elec:20000, abt:100, vte:2400};
 if (!S.videSanitaire) S.videSanitaire = null;
+
+// Compatibilité avec ancien format (migration)
+if (S.bande && !S.bandes.length) {
+  S.bande.id = S.bande.id || 'B001';
+  S.bande.statut = 'active';
+  S.bandes.push(S.bande);
+  S.bandeCourante = S.bande.id;
+}
+
+function getBandeCourante() {
+  if (!S.bandeCourante || !S.bandes.length) return null;
+  return S.bandes.find(function(b) { return b.id === S.bandeCourante; }) || S.bandes[0];
+}
+
+function getBandesActives() {
+  return S.bandes.filter(function(b) { return b.statut === 'active'; });
+}
 
 function save() {
   try { localStorage.setItem('kq_loumbila', JSON.stringify(S)); } catch(e) {}
@@ -862,6 +951,16 @@ function doLogin() {
       });
       var np = document.getElementById('nav-params-btn');
       if (np) np.style.display = 'flex';
+      var nc = document.getElementById('nav-compta-btn');
+      if (nc) nc.style.display = 'flex';
+      var nv = document.getElementById('nav-ventes-btn');
+      if (nv) nv.style.display = 'flex';
+      // Afficher onglet nouvelle bande
+      var tabNew = document.getElementById('tab-acc-new');
+      if (tabNew) tabNew.style.display = 'inline-flex';
+      // Afficher section dépenses
+      var cardDep = document.getElementById('card-depenses-bande');
+      if (cardDep) cardDep.style.display = 'block';
     }
     if (uid === 'partenaire') {
       document.querySelectorAll('.btn-p,.btn-g,.btn-r').forEach(function(b) { b.style.display = 'none'; });
@@ -1014,7 +1113,8 @@ function swTabBandes(id,btn) {
 
 // ══ UTILS ══
 function getCurJour() {
-  return S.bande ? Math.max(1, Math.floor((new Date() - new Date(S.bande.dateDebut)) / 86400000) + 1) : 1;
+  var bc = getBandeCourante();
+  return bc ? Math.max(1, Math.floor((new Date() - new Date(bc.dateDebut)) / 86400000) + 1) : 1;
 }
 
 function togChk(el) {
@@ -1032,11 +1132,12 @@ function showToast(msg) {
 }
 
 function updateJour() {
-  var j = getCurJour();
+  var bc = getBandeCourante();
+  var j = bc ? Math.max(1, Math.floor((new Date()-new Date(bc.dateDebut))/86400000)+1) : 1;
   var ja = document.getElementById('jour-act');
   var bn = document.getElementById('bande-nom-top');
   if (ja) ja.textContent = j;
-  if (bn) bn.textContent = S.bande ? S.bande.nom : 'Aucune bande';
+  if (bn) bn.textContent = bc ? (bc.numSerie + ' — ' + bc.nom) : 'Aucune bande';
 }
 
 function updateCategories() {
@@ -1061,6 +1162,8 @@ function initApp() {
   renderBandes();
   renderSessions();
   checkProtoAlertes();
+  if (typeof loadDepenses === 'function') loadDepenses();
+  renderBandeSel();
   var today = new Date().toISOString().split('T')[0];
   ['in-lit-date','in-san-date','abt-date','op-date','new-bande-date','new-proto-date','stock-init-date','conso-date'].forEach(function(id) {
     var el = document.getElementById(id);
@@ -1091,27 +1194,35 @@ function renderAccueil() {
     if (em) em.textContent = s.morts || 0;
     renderAlertes(s.temp, s.hr);
   }
-  var vivants = S.bande ? (S.bande.effectif - (S.mortaliteCumul || 0)) : null;
+  var bc = getBandeCourante();
+  var mortalite = bc ? (S.saisies||[]).filter(function(s){return s.type==='matin'&&s.bande===bc.id;}).reduce(function(a,s){return a+(s.morts||0);},0) : 0;
+  var vivants = bc ? (bc.effectif - mortalite) : null;
   if (vivants !== null) {
     var ev = document.getElementById('kpi-vivants');
     var evs = document.getElementById('kpi-vivants-s');
     if (ev) ev.textContent = vivants;
-    if (evs) evs.textContent = 'sur ' + S.bande.effectif;
+    if (evs) evs.textContent = 'sur ' + bc.effectif;
   }
   var bi = document.getElementById('bande-info-accueil');
   if (bi) {
-    if (S.bande) {
+    if (bc) {
       var j = getCurJour();
       var pct = Math.round(j / 45 * 100);
-      bi.innerHTML = '<div style="font-weight:700;color:var(--primary);margin-bottom:4px">' + S.bande.nom + '</div>'
-        + '<div style="font-size:.82rem;color:var(--gray-t);margin-bottom:.5rem">Debut : ' + new Date(S.bande.dateDebut).toLocaleDateString('fr-FR') + ' &bull; ' + S.bande.effectif + ' sujets</div>'
-        + '<div class="prog-bg"><div class="prog-fill" style="width:' + Math.min(pct,100) + '%"></div></div>';
+      var autresBandes = getBandesActives().filter(function(b){return b.id!==bc.id;});
+      bi.innerHTML = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+        + '<div style="font-weight:700;color:var(--primary);font-size:1rem">' + bc.nom + '</div>'
+        + '<span style="background:var(--primary);color:var(--gold);border-radius:4px;padding:2px 8px;font-size:.72rem;font-weight:700">' + (bc.numSerie||'N/A') + '</span>'
+        + '</div>'
+        + '<div style="font-size:.82rem;color:var(--gray-t);margin-bottom:.5rem">Debut : ' + new Date(bc.dateDebut).toLocaleDateString('fr-FR') + ' &bull; ' + bc.effectif + ' sujets &bull; ' + (bc.souche||'') + '</div>'
+        + '<div class="prog-bg"><div class="prog-fill" style="width:' + Math.min(pct,100) + '%"></div></div>'
+        + (autresBandes.length ? '<div style="font-size:.78rem;color:var(--blue-t);margin-top:6px">+ ' + autresBandes.length + ' autre(s) bande(s) active(s)</div>' : '');
     } else {
-      bi.innerHTML = '<div style="color:var(--gray-t);font-size:.85rem;text-align:center;padding:.5rem">Aucune bande — creer une bande dans Bandes</div>';
+      bi.innerHTML = '<div style="color:var(--gray-t);font-size:.85rem;text-align:center;padding:.5rem">Aucune bande — creer une bande ci-dessus</div>';
     }
   }
+  renderBandeSel();
   var cCout = document.getElementById('card-cout-live');
-  if (cCout) cCout.style.display = S.bande ? 'block' : 'none';
+  if (cCout) cCout.style.display = bc ? 'block' : 'none';
   calcLive();
 }
 
@@ -1197,7 +1308,8 @@ function saveMatin() {
   var a = parseFloat(aEl ? aEl.value : 0) || 0;
   S.mortaliteCumul = (S.mortaliteCumul || 0) + m;
   S.alimCumul = (S.alimCumul || 0) + a;
-  S.saisies.push({type:'matin',jour:getCurJour(),date:new Date().toLocaleDateString('fr-FR'),temp:t,hr:h,morts:m,alim:a,user:currentUser});
+  var bc_m = getBandeCourante();
+  S.saisies.push({type:'matin',jour:getCurJour(),bande:bc_m?bc_m.id:'',bandeSerie:bc_m?bc_m.numSerie:'',date:new Date().toLocaleDateString('fr-FR'),temp:t,hr:h,morts:m,alim:a,user:currentUser});
   if (S.saisies.length > 180) S.saisies = S.saisies.slice(-180);
   save();
   supaQ('saisies', 'POST', {ferme:FARM,type:'matin',jour:getCurJour(),date_saisie:new Date().toISOString().split('T')[0],temp:t,hr:h,morts:m,alim:a,user_label:currentUser});
@@ -1622,12 +1734,13 @@ function renderCompta() {
   if (!ol) return;
   if (!S.operations.length) { ol.innerHTML = '<div style="color:var(--gray-t);font-size:.82rem;text-align:center;padding:1rem">Aucune operation</div>'; return; }
   ol.innerHTML = [].concat(S.operations).reverse().map(function(o) {
-    return '<div class="bande-card"><div class="bande-head"><div><div style="font-size:.85rem;font-weight:700">' + o.cat + '</div><div style="font-size:.72rem;color:var(--gray-t)">' + o.date + (o.ref?' - '+o.ref:'') + '</div></div><div style="font-size:1.05rem;font-weight:700;color:' + (o.type==='recette'?'var(--green)':'var(--red)') + '">' + (o.type==='depense'?'-':'+') + o.montant.toLocaleString('fr-FR') + ' F</div></div></div>';
+    return '<div class="bande-card"><div class="bande-head"><div><div style="font-size:.85rem;font-weight:700">' + o.cat + (o.bandeSerie?' <span style="background:var(--primary);color:var(--gold);border-radius:3px;padding:1px 5px;font-size:.68rem">' + o.bandeSerie + '</span>':'') + '</div><div style="font-size:.72rem;color:var(--gray-t)">' + o.date + (o.desc?' &bull; '+o.desc:'') + '</div></div><div style="font-size:1.05rem;font-weight:700;color:' + (o.type==='recette'?'var(--green)':'var(--red)') + '">' + (o.type==='depense'?'-':'+') + o.montant.toLocaleString('fr-FR') + ' F</div></div></div>';
   }).join('');
 }
 
 // ══ BANDES ══
 function creerBande() {
+  if (currentUser !== 'gestionnaire') { showToast('Reserve au gestionnaire !'); return; }
   var nom = document.getElementById('new-bande-nom') ? document.getElementById('new-bande-nom').value : '';
   var date = document.getElementById('new-bande-date') ? document.getElementById('new-bande-date').value : '';
   var eff = parseInt((document.getElementById('new-bande-eff')||{}).value) || 1100;
@@ -1635,33 +1748,83 @@ function creerBande() {
   var lotA = parseInt((document.getElementById('new-bande-lota')||{}).value) || 50;
   var prixP = parseFloat((document.getElementById('new-bande-prix-p')||{}).value) || 750;
   if (!nom || !date) { showToast('Nom et date obligatoires !'); return; }
-  if (S.bande) S.bandesArchives.push({...S.bande, dateFin:new Date().toLocaleDateString('fr-FR'), mortalite:S.mortaliteCumul, reventes:S.ventes.reduce(function(a,v){return a+v.total;},0)});
-  S.bande = {nom:nom,dateDebut:date,effectif:eff,souche:souche,lotA:lotA,prixPoussin:prixP};
-  S.mortaliteCumul=0; S.alimCumul=0; S.saisies=[]; S.ventes=[]; S.operations=[]; S.litiere=[]; S.sante=[]; S.protocoles=[]; S.sessionsAbattage=[]; S.dernierPoids=null; S.dernierGMQ=null; S.stockAlim={total:0,consomme:0,receptions:[],consoHist:[]};
-  save(); updateJour(); renderBandes(); renderAccueil();
-  showToast('Nouvelle bande creee !');
+  // Numéro de série automatique basé sur le nombre de bandes existantes
+  var numSerie = S.bandes.length + 1;
+  var codeSerie = 'B' + String(numSerie).padStart(3,'0') + '-' + FARM.toUpperCase().slice(0,3) + '-' + new Date().getFullYear();
+  var nouvBande = {
+    id: codeSerie,
+    nom: nom,
+    numSerie: codeSerie,
+    dateDebut: date,
+    effectif: eff,
+    souche: souche,
+    lotA: lotA,
+    prixPoussin: prixP,
+    statut: 'active',
+    createdAt: Date.now()
+  };
+  // Ajouter à la liste sans supprimer les autres bandes
+  S.bandes.push(nouvBande);
+  S.bandeCourante = codeSerie;
+  // Réinitialiser les données de saisie courante (mais garder historique dans operations/ventes avec bande liée)
+  S.saisies = [];
+  S.protocoles = [];
+  S.sessionsAbattage = [];
+  S.stockAlim = {total:0, consomme:0, receptions:[], consoHist:[]};
+  save();
+  updateJour();
+  renderBandes();
+  renderAccueil();
+  renderBandeSel();
+  // Vider le formulaire
+  ['new-bande-nom','new-bande-date'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  swAccueil('bande', document.querySelectorAll('#page-accueil .tab')[0]);
+  showToast('Bande ' + codeSerie + ' creee et active !');
 }
 
 function renderBandes() {
   var ba = document.getElementById('bande-active-detail');
-  if (!ba) return;
-  if (!S.bande) { ba.innerHTML = '<div class="ab a-info">Aucune bande active</div>'; }
-  else {
-    var j = getCurJour();
-    var vivants = S.bande.effectif - (S.mortaliteCumul||0);
-    var pct = ((S.mortaliteCumul||0)/S.bande.effectif*100).toFixed(1);
-    ba.innerHTML = '<div class="card"><div class="card-title">Bande active</div>'
-      + '<div class="bande-head"><div class="bande-title">' + S.bande.nom + '</div><span class="badge badge-g">J' + j + '</span></div>'
-      + '<div class="kpi-grid"><div class="kpi"><div class="kpi-lbl">Effectif</div><div class="kpi-val">' + S.bande.effectif + '</div></div>'
-      + '<div class="kpi"><div class="kpi-lbl">Vivants</div><div class="kpi-val ok">' + vivants + '</div></div>'
-      + '<div class="kpi"><div class="kpi-lbl">Mortalite</div><div class="kpi-val ' + (parseFloat(pct)>5?'danger':'ok') + '">' + pct + '%</div></div>'
-      + '<div class="kpi"><div class="kpi-lbl">GMQ</div><div class="kpi-val">' + (S.dernierGMQ||'-') + '</div><div class="kpi-sub">g/j</div></div></div></div>';
+  var actives = getBandesActives();
+  if (ba) {
+    if (!actives.length) {
+      ba.innerHTML = '<div class="ab a-info">Aucune bande active — creer une bande depuis l\'accueil</div>';
+    } else {
+      ba.innerHTML = actives.map(function(b) {
+        var j = Math.max(1,Math.floor((new Date()-new Date(b.dateDebut))/86400000)+1);
+        var mortalite = (S.saisies||[]).filter(function(s){return s.type==='matin'&&s.bande===b.id;}).reduce(function(a,s){return a+(s.morts||0);},0);
+        var vivants = b.effectif - mortalite;
+        var pct = (mortalite/b.effectif*100).toFixed(1);
+        var depBande = (S.operations||[]).filter(function(o){return o.bandeSerie===b.id&&o.type==='depense';}).reduce(function(a,o){return a+o.montant;},0);
+        var recBande = (S.ventes||[]).filter(function(v){return v.bande===b.id;}).reduce(function(a,v){return a+v.total;},0);
+        var isCourante = b.id === S.bandeCourante;
+        return '<div class="bande-card" style="' + (isCourante?'border:2px solid var(--gold)':'') + '">'
+          + '<div class="bande-head"><div><div class="bande-title">' + b.nom + '</div>'
+          + '<span style="background:var(--primary);color:var(--gold);border-radius:4px;padding:2px 8px;font-size:.72rem;font-weight:700">' + b.numSerie + '</span>'
+          + (isCourante?'<span class="badge badge-g" style="margin-left:6px">Active</span>':'')
+          + '</div><span class="badge badge-g">J' + j + '</span></div>'
+          + '<div class="kpi-grid" style="margin-top:.5rem">'
+          + '<div class="kpi"><div class="kpi-lbl">Effectif</div><div class="kpi-val">' + b.effectif + '</div></div>'
+          + '<div class="kpi"><div class="kpi-lbl">Vivants</div><div class="kpi-val ok">' + vivants + '</div></div>'
+          + '<div class="kpi"><div class="kpi-lbl">Mortalite</div><div class="kpi-val ' + (parseFloat(pct)>5?'danger':'ok') + '">' + pct + '%</div></div>'
+          + '<div class="kpi"><div class="kpi-lbl">Depenses</div><div class="kpi-val danger" style="font-size:.9rem">' + (depBande?(depBande/1000).toFixed(0)+'k':'-') + '</div></div>'
+          + '</div>'
+          + '<div style="margin-top:.5rem;font-size:.75rem;color:var(--gray-t)">Debut : ' + new Date(b.dateDebut).toLocaleDateString('fr-FR') + ' &bull; ' + (b.souche||'') + '</div>'
+          + '</div>';
+      }).join('');
+    }
   }
   var al = document.getElementById('bandes-list');
   if (!al) return;
-  if (!S.bandesArchives || !S.bandesArchives.length) { al.innerHTML = '<div style="color:var(--gray-t);font-size:.82rem;text-align:center;padding:1rem">Aucune bande archivee</div>'; return; }
-  al.innerHTML = [].concat(S.bandesArchives).reverse().map(function(b) {
-    return '<div class="bande-card"><div class="bande-head"><div><div class="bande-title">' + b.nom + '</div><div style="font-size:.72rem;color:var(--gray-t)">' + new Date(b.dateDebut).toLocaleDateString('fr-FR') + ' - ' + (b.dateFin||'-') + '</div></div><span class="badge badge-g">Terminee</span></div></div>';
+  var cloturees = S.bandes.filter(function(b){return b.statut==='cloturee';});
+  if (!cloturees.length) { al.innerHTML = '<div style="color:var(--gray-t);font-size:.82rem;text-align:center;padding:1rem">Aucune bande cloturee</div>'; return; }
+  al.innerHTML = cloturees.reverse().map(function(b) {
+    var depBande = (S.operations||[]).filter(function(o){return o.bandeSerie===b.id&&o.type==='depense';}).reduce(function(a,o){return a+o.montant;},0);
+    return '<div class="bande-card"><div class="bande-head"><div><div class="bande-title">' + b.nom + '</div>'
+      + '<span style="background:var(--primary);color:var(--gold);border-radius:4px;padding:2px 6px;font-size:.68rem">' + b.numSerie + '</span>'
+      + '</div><span class="badge badge-r">Cloturee</span></div>'
+      + '<div style="font-size:.75rem;color:var(--gray-t);margin-top:4px">' + new Date(b.dateDebut).toLocaleDateString('fr-FR') + ' - ' + (b.dateFin||'-') + '</div>'
+      + (depBande?'<div style="font-size:.78rem;color:var(--red);margin-top:2px">Depenses : ' + depBande.toLocaleString('fr-FR') + ' F</div>':'')
+      + '</div>';
   }).join('');
 }
 
@@ -1727,6 +1890,147 @@ function renderSaisonMal() {
   z.innerHTML = '<div class="ab a-warn"><span class="ab-icon">!</span>' + msg + '</div>';
 }
 
+
+
+// ══ GESTION MULTI-BANDES ══
+
+function renderBandeSel() {
+  var sel = document.getElementById('bande-sel');
+  if (!sel) return;
+  var actives = getBandesActives();
+  if (!actives.length) {
+    sel.innerHTML = '<option value="">Aucune bande active</option>';
+    return;
+  }
+  sel.innerHTML = actives.map(function(b) {
+    return '<option value="' + b.id + '"' + (b.id === S.bandeCourante ? ' selected' : '') + '>'
+      + b.numSerie + ' — ' + b.nom + ' (J' + Math.max(1,Math.floor((new Date()-new Date(b.dateDebut))/86400000)+1) + ')'
+      + '</option>';
+  }).join('');
+  // Mettre à jour label dépenses
+  var bc = getBandeCourante();
+  var lbl = document.getElementById('dep-bande-label');
+  if (lbl) lbl.textContent = bc ? bc.numSerie + ' — ' + bc.nom : 'sélectionner une bande';
+  // Bouton clôturer visible pour gestionnaire
+  var btn = document.getElementById('btn-cloturer');
+  if (btn) btn.style.display = currentUser === 'gestionnaire' && actives.length > 0 ? 'block' : 'none';
+}
+
+function changerBande(id) {
+  S.bandeCourante = id;
+  save();
+  renderAccueil();
+  renderBandeSel();
+  var bc = getBandeCourante();
+  if (bc) showToast('Bande active : ' + bc.numSerie);
+}
+
+function cloturerBande() {
+  var bc = getBandeCourante();
+  if (!bc) return;
+  if (!confirm('Clôturer la bande ' + bc.numSerie + ' ? Elle passera en archives.')) return;
+  var idx = S.bandes.findIndex(function(b) { return b.id === bc.id; });
+  if (idx >= 0) {
+    S.bandes[idx].statut = 'cloturee';
+    S.bandes[idx].dateFin = new Date().toLocaleDateString('fr-FR');
+  }
+  // Passer à la prochaine bande active
+  var actives = getBandesActives();
+  S.bandeCourante = actives.length ? actives[0].id : null;
+  save(); renderAccueil(); renderBandeSel(); renderBandes();
+  showToast('Bande ' + bc.numSerie + ' cloturee');
+}
+
+// ══ ACCUEIL ONGLETS ══
+function swAccueil(id, btn) {
+  if (id === 'new' && currentUser !== 'gestionnaire') {
+    showToast('Creation de bande reservee au gestionnaire');
+    return;
+  }
+  var bande = document.getElementById('acc-bande');
+  var newb = document.getElementById('acc-new');
+  if (bande) bande.style.display = id === 'bande' ? 'block' : 'none';
+  if (newb) newb.style.display = id === 'new' ? 'block' : 'none';
+  document.querySelectorAll('#page-accueil .tab').forEach(function(t) { t.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+}
+
+// ══ DÉPENSES BANDE ══
+var depLines = [];
+
+function addDepLine() {
+  depLines.push({libelle:'', unite:'', prixUnit:0, qte:0, montant:0});
+  renderDepTable();
+}
+
+function renderDepTable() {
+  var tbody = document.getElementById('dep-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = depLines.map(function(dep, i) {
+    return '<tr>'
+      + '<td><input type="text" value="' + (dep.libelle||'') + '" placeholder="Ex: Maïs" oninput="updateDep(' + i + ',\'libelle\',this.value)" style="min-width:90px"></td>'
+      + '<td><input type="text" value="' + (dep.unite||'') + '" placeholder="kg/sac" oninput="updateDep(' + i + ',\'unite\',this.value)" style="width:60px"></td>'
+      + '<td><input type="number" value="' + (dep.prixUnit||'') + '" placeholder="0" oninput="updateDep(' + i + ',\'prixUnit\',+this.value)" style="width:70px"></td>'
+      + '<td><input type="number" value="' + (dep.qte||'') + '" placeholder="0" oninput="updateDep(' + i + ',\'qte\',+this.value)" style="width:55px"></td>'
+      + '<td class="dep-montant">' + ((dep.prixUnit||0)*(dep.qte||0)).toLocaleString('fr-FR') + ' F</td>'
+      + '<td><button onclick="deleteDep(' + i + ')" style="background:var(--red);color:white;border:none;border-radius:4px;padding:2px 8px;font-size:.8rem;cursor:pointer">X</button></td>'
+      + '</tr>';
+  }).join('');
+  updateDepTotal();
+}
+
+function updateDep(idx, field, val) {
+  depLines[idx][field] = val;
+  depLines[idx].montant = (depLines[idx].prixUnit||0) * (depLines[idx].qte||0);
+  renderDepTable();
+}
+
+function deleteDep(idx) {
+  depLines.splice(idx, 1);
+  renderDepTable();
+}
+
+function updateDepTotal() {
+  var total = depLines.reduce(function(a, d) { return a + (d.prixUnit||0)*(d.qte||0); }, 0);
+  var el = document.getElementById('dep-total');
+  if (el) el.textContent = total.toLocaleString('fr-FR') + ' F';
+}
+
+function saveDepenses() {
+  if (currentUser !== 'gestionnaire') { showToast('Reserve au gestionnaire !'); return; }
+  var bc_dep = getBandeCourante();
+  if (!bc_dep) { showToast('Selectionner une bande active !'); return; }
+  if (!depLines.length) { showToast('Ajoute au moins une ligne !'); return; }
+  var today = new Date().toISOString().split('T')[0];
+  var saved = 0;
+  depLines.forEach(function(dep) {
+    if (!dep.libelle || !dep.prixUnit || !dep.qte) return;
+    var montant = dep.prixUnit * dep.qte;
+    S.operations.push({
+      type: 'depense',
+      cat: dep.libelle,
+      date: today,
+      montant: montant,
+      bande: bc_dep.nom,
+      bandeSerie: bc_dep.numSerie || '',
+      ref: bc_dep.numSerie || ('BANDE-' + bc_dep.nom),
+      desc: dep.qte + ' ' + (dep.unite||'') + ' x ' + dep.prixUnit.toLocaleString('fr-FR') + ' F',
+      ts: Date.now()
+    });
+    saved++;
+  });
+  save();
+  showToast(saved + ' depense(s) liee(s) a ' + bc_dep.nom + ' (' + (bc_dep.numSerie||'') + ')');
+  depLines = [];
+  renderDepTable();
+  renderCompta();
+}
+
+// Charger dépenses sauvegardées au démarrage
+function loadDepenses() {
+  depLines = S.depLinesBrouillon || [];
+  if (depLines.length) renderDepTable();
+}
 // ══ TRANSPORT TOGGLE ══
 document.addEventListener('click', function(e) {
   var chk = document.getElementById('chk-transport');
