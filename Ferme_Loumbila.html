@@ -785,199 +785,13 @@ const db = {
 
 // Sync: charger données depuis Supabase au démarrage
 async function syncFromSupabase() {
-  showLoading('Synchronisation des données...');
-  try {
-    // Bande active
-    const bandes = await db.get('bandes', {ferme: FARM, active: 'true'});
-    if (bandes && bandes.length) {
-      const b = bandes[0];
-      S.bande = {nom:b.nom, dateDebut:b.date_debut, effectif:b.effectif, souche:b.souche, lotA:b.lot_a, prixPoussin:b.prix_poussin, id:b.id};
+  // Sync silencieux en arriere-plan — non bloquant
+  supaQ('saisies','GET',null,'?ferme=eq.'+FARM+'&order=created_at.desc&limit=5').then(function(res){
+    if(res&&res.length){
+      // Mettre a jour mortalite depuis Supabase si disponible
+      renderAccueil();
     }
-    // Saisies (30 dernières)
-    const saisies = await db.get('saisies', {ferme: FARM});
-    if (saisies && saisies.length) {
-      S.saisies = saisies.map(s=>({type:s.type,jour:s.jour,date:s.date_saisie,temp:s.temp,hr:s.hr,morts:s.morts||0,alim:s.alim||0,user:s.user_label}));
-      S.mortaliteCumul = S.saisies.filter(s=>s.type==='matin').reduce((a,s)=>a+(s.morts||0),0);
-      S.alimCumul = S.saisies.filter(s=>s.type==='matin').reduce((a,s)=>a+(s.alim||0),0);
-    }
-    // Protocoles
-    const protos = await db.get('protocoles', {ferme: FARM});
-    if (protos && protos.length) {
-      S.protocoles = protos.map(p=>({id:p.id,type:p.type,prod:p.produit,date:p.date_prevue,dose:p.dose,notes:p.notes,fait:p.fait}));
-    }
-    // Stock aliment
-    const stock = await db.get('stock_aliment', {ferme: FARM});
-    if (stock && stock.length) {
-      S.stockAlim = {mais:stock[0].mais||0, soja:stock[0].soja||0, conc:stock[0].conc||0};
-    }
-    // Ventes
-    const ventes = await db.get('ventes', {ferme: FARM});
-    if (ventes && ventes.length) {
-      S.ventes = ventes.map(v=>({client:v.client,date:v.date_vente,type:v.type,typeLabel:v.type_label,nb:v.nb,pds:v.poids,prix:v.prix,total:v.total,dest:v.destination,destLabel:v.dest_label,user:v.user_label}));
-    }
-    // Opérations comptables
-    const ops = await db.get('comptabilite', {ferme: FARM});
-    if (ops && ops.length) {
-      S.operations = ops.map(o=>({type:o.type,cat:o.categorie,date:o.date_op,montant:o.montant,ref:o.reference,desc:o.description}));
-    }
-    // Dernière pesée
-    const pesees = await db.get('pesees', {ferme: FARM});
-    if (pesees && pesees.length) {
-      const p = pesees[0];
-      S.dernierPoids = p.poids_moyen;
-      S.dernierGMQ = p.gmq;
-      S.dernierIC = p.ic;
-    }
-    // Litière
-    const lit = await db.get('litiere', {ferme: FARM});
-    if (lit && lit.length) {
-      S.litiere = lit.map(l=>({date:l.date_changement,type:l.type,label:l.label,qte:l.quantite,obs:l.observations,user:l.user_label}));
-    }
-    save();
-    updateJour();
-    renderAccueil();
-    renderProto();
-    renderStock();
-    renderVentes();
-    renderCompta();
-    renderBandes();
-    checkProtoAlertes();
-    hideLoading();
-    calcLive();
-    showToast('✅ Données synchronisées !');
-  } catch(e) {
-    hideLoading();
-    console.log('Sync error:', e);
-    showToast('⚠️ Mode hors ligne — données locales');
-  }
-}
-
-// Config ferme autonome
-const SUPA_URL='https://zzudpcanpijkhojpygcq.supabase.co';
-const SUPA_KEY='sb_publishable_jzFhUV3gxBkusr2dgkgx8g_k0_XCcFG';
-const FARM='loumbila';
-let currentUserData=null;
-
-async function supaQ(table,method,body,params){
-  method=method||'GET';params=params||'';
-  try{
-    var url=SUPA_URL+'/rest/v1/'+table+params;
-    var h={'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
-    if(method!=='GET')h['Prefer']='return=representation';
-    var r=await fetch(url,{method:method,headers:h,body:body?JSON.stringify(body):null});
-    return r.ok?r.json():null;
-  }catch(e){return null;}
-}
-
-function getPINS(){
-  var s=localStorage.getItem('kq_pins_loumbila');
-  if(s)try{return JSON.parse(s);}catch(e){}
-  return {gestionnaire:'9999',collab1:'1001',collab2:'1002',partenaire:'5555'};
-}
-function savePINS(p){localStorage.setItem('kq_pins_loumbila',JSON.stringify(p));}
-
-
-async function hashPin(str){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-async function loadSupabaseUsers(){
-  const res=await supaQ('utilisateurs','GET',null,`?ferme_id=eq.${FARM}&actif=eq.true&order=created_at.asc`);
-  SUPABASE_USERS=res||[];
-  // Populate select
-  const sel=document.getElementById('auth-user');
-  sel.innerHTML='<option value="">— Choisir —</option>'+
-    SUPABASE_USERS.map(u=>`<option value="${u.id}">${u.role==='gestionnaire'?'👤':'u.role==='partenaire'?'👁️':'👷'} ${u.nom}</option>`).join('');
-}
-const CAT_DEP = ['Achat poussins','Aliment — Maïs','Aliment — Soja','Aliment — Concentré','Aliment — Huile','Aliment — Coquilles','Aliment — Autres intrants','Médicaments & vaccins','Salaires','Eau & électricité','Achat litière','Charbon','Abattage','Glace (forfait)','Autres'];
-const CAT_REC = ['Vente carcasses','Vente marché','Vente gésiers & foies','Vente têtes & pattes','Vente fiente','Vente poulets vivants','Autres'];
-
-let currentUser = null;
-let S = {
-  bande:null, bandesArchives:[],
-  saisies:[], protocoles:[], litiere:[], sante:[],
-  stockAlim:{mais:0,soja:0,conc:0}, consoHist:[],
-  ventes:[], operations:[],
-  mortaliteCumul:0, dernierPoids:null, dernierGMQ:null, dernierIC:null,
-  alimCumul:0,
-  prix:{mais:150,soja:360,conc:900,medic:80000,sal:60000,elec:20000,abt:100,vte:2400},
-};
-try{const d=localStorage.getItem('kq_farm_'+FARM);if(d)S={...S,...JSON.parse(d)};}catch(e){}
-function save(){try{localStorage.setItem('kq_farm_'+FARM,JSON.stringify(S));}catch(e){}}
-
-// AUTH
-function pinNext(el,nxt){
-  el.value=el.value.replace(/\D/g,'');
-  if(el.value.length===1&&nxt)document.getElementById(nxt).focus();
-  if(!nxt)doLogin();
-}
-// Système anti-brute-force
-const LOGIN_ATTEMPTS = {};
-const MAX_ATTEMPTS = 5;
-const BLOCK_DURATION = 30 * 60 * 1000; // 30 minutes
-
-function checkBlocked(uid) {
-  const key = 'block_' + uid;
-  const data = localStorage.getItem(key);
-  if (!data) return false;
-  const {count, time} = JSON.parse(data);
-  if (count >= MAX_ATTEMPTS) {
-    const elapsed = Date.now() - time;
-    if (elapsed < BLOCK_DURATION) {
-      const remaining = Math.ceil((BLOCK_DURATION - elapsed) / 60000);
-      return remaining;
-    } else {
-      localStorage.removeItem(key);
-      return false;
-    }
-  }
-  return false;
-}
-
-function recordFailedAttempt(uid) {
-  const key = 'block_' + uid;
-  const data = localStorage.getItem(key);
-  let count = 1;
-  if (data) {
-    const parsed = JSON.parse(data);
-    count = parsed.count + 1;
-  }
-  localStorage.setItem(key, JSON.stringify({count, time: Date.now()}));
-  return MAX_ATTEMPTS - count;
-}
-
-function resetAttempts(uid) {
-  localStorage.removeItem('block_' + uid);
-}
-
-function doLogin(){
-  const uid=document.getElementById('auth-user').value;
-  const pin=['p1','p2','p3','p4'].map(id=>document.getElementById(id).value).join('');
-  const errEl=document.getElementById('auth-err');
-  errEl.textContent='';
-  if(!uid){errEl.textContent='Choisis ton profil';return;}
-  if(pin.length<4){errEl.textContent='Entre les 4 chiffres';return;}
-  document.getElementById('auth-spin').style.display='inline-block';
-  document.getElementById('btn-auth-txt').textContent='Verification...';
-  document.getElementById('btn-auth').style.opacity='.7';
-  document.getElementById('btn-auth').style.pointerEvents='none';
-  setTimeout(function(){
-    var pins=getPINS();
-    if(pins[uid]!==pin){
-      document.getElementById('auth-spin').style.display='none';
-      document.getElementById('btn-auth-txt').textContent='Entrer dans l\'application';
-      document.getElementById('btn-auth').style.opacity='1';
-      document.getElementById('btn-auth').style.pointerEvents='auto';
-      errEl.textContent='Code incorrect';
-      ['p1','p2','p3','p4'].forEach(function(id){document.getElementById(id).value='';});
-      document.getElementById('p1').focus();
-      return;
-    }
-    currentUserData={role:uid};
-    currentUser=uid;
-    initApp();
-  },300);
+  }).catch(function(){});
 }
 
 async function checkAccess(){
@@ -1004,10 +818,19 @@ function doLogout(){
 
 // INIT
 function initApp(){
-  syncFromSupabase();
-  // set today date defaults
+  updateJour();
+  renderAccueil();
+  renderProto();
+  renderStockDispo();
+  renderPoussins();
+  renderVentes();
+  renderCompta();
+  renderBandes();
+  renderSessions();
+  checkProtoAlertes();
   const today=new Date().toISOString().split('T')[0];
   ['in-lit-date','in-san-date','abt-date','op-date','new-bande-date','new-proto-date','stock-init-date','conso-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today;});
+  setTimeout(syncFromSupabase, 2000);
 }
 
 function updateJour(){
